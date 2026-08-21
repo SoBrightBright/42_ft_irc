@@ -137,6 +137,8 @@ void Server::receiveData(int client_fd)
         std::string line = _clients[client_fd]->popLine();
         // 파싱 호출
         // 채널,커맨드 처리 호출
+
+        //이 아래 세 줄은 ECHO 서버 테스트 전용, 지우고 하셔야 irssi 작동.
         std::cout << "solee said: " << '"' << line << '"' << std::endl;
         _clients[client_fd]->getWriteBuffer() += line + "\r\n";
         updatePoll(client_fd);
