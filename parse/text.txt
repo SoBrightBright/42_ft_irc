@@ -1,0 +1,12 @@
+https://github.com/1988-protocol/ft_irc
+
+파싱 파트에서 Server와 Client에서 가지고 있다고 상정하는 함수:
+Client: isRegistered(), sendReply(string)
+        getNickname() setNickname(string) 
+        getUsername()/setUsername(string) 
+		
+		setRealname(string)
+        setPasswordVerified(bool) / hasPasswordVerified()
+Server: getName(), isNicknameTaken(string) 
+		checkPassword(string),
+        disconnectClient(Client&, string reason)
