@@ -47,27 +47,21 @@ void	Nick::execute(Server &server, Client &client, const Message &msg) {
 		target = client.getNickname();
 
 	if (params.empty()) {
-		/*
-			client.sendReply(IrcReply::formatReply(server.getName(), IrcNumeric::ERR_NONICKNAMEGIVEN,
-												   target, "No nickname given"));
-		*/
+		client.sendReply(IrcReply::formatReply(IrcNumeric::ERR_NONICKNAMEGIVEN,
+											   target, "No nickname given"));
 
 		const std::string &newNickname = params[0];
 		
 		if (!isValidNickname(newNickname)) {
-			/*
-				client.sendReply(IrcReply::formatReplyWithParam(server.getName(), IrcNumeric::ERR_ERRONEUSNICKNAME,
-								 								target, newNick, "Erroneous nickname"));
-			*/
+			client.sendReply(IrcReply::formatReplyWithParameter(IrcNumeric::ERR_ERRONEUSNICKNAME,
+								 					target, newNickname, "Erroneous nickname"));
 			return;
 		}
 
-		/*
-			if (server.isNicknameTaken(newNickname)) {
-				client.sendReply(IrcReply::formatReplyWithParam(server.getName(), IrcNumeric::ERR_ERR_NICKNAMEINUSE,
-								 								target, newNick, "Nickname is already in use"));
-			}
-		*/
+		if (server.isNicknameTaken(newNickname)) {
+			client.sendReply(IrcReply::formatReplyWithParameter(IrcNumeric::ERR_ERRNICKNAMEINUSE,
+								 				target, newNickname, "Nickname is already in use"));
+		}
 
 		client.setNickname(newNickname);
 	}

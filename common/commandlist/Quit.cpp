@@ -18,7 +18,6 @@ void	Quit::execute(Server &server, Client &client, const Message &msg) {
 	std::string reason = "Client Quit";
 
 	if (msg.hasTrailing())
-		reason = msg.getTrailing();
-	// 구현하신 disconnectClient()는 client, reason을 안 받네요... 
-	// server.disconnectClient(client, reason);
+		reason = msg.getTrailing(); 
+	server.disconnectClient(client, reason);
 }
