@@ -8,13 +8,13 @@ std::string IrcReply::targetname(const Client &client) {
 	return "*";
 }
 
-std::string	IrcReply::formatReply(const std::string &servername, const std::string code,
+std::string	IrcReply::formatReply(const std::string code,
 								  const std::string &target, const std::string &trailing)
-{ return (":" + servername + " " + code + " " + target + " :" + trailing + "\r\n"); }
+{ return (":ircserv " + code + " " + target + " :" + trailing + "\r\n"); }
 
-std::string IrcReply::formatReplyWithParameter (const std::string &servername, const std::string code,
-					const std::string &target, const std::string &parameter, const std::string &trailing)
-{ return (":" + servername + " " + code + " " + target + " " + parameter + " :" + trailing + "\r\n"); }
+std::string IrcReply::formatReplyWithParameter (const std::string code, const std::string &target,
+												const std::string &parameter, const std::string &trailing)
+{ return (":ircserv " + code + " " + target + " " + parameter + " :" + trailing + "\r\n"); }
 
-std::string	IrcReply::formatCommand(const std::string &servername, const std::string &command, const std::string &trailing)
-{ return (":" + servername + " " + command + " :" + trailing + "\r\n"); }
+std::string	IrcReply::formatCommand(const std::string &command, const std::string &trailing)
+{ return (":ircserv " + command + " :" + trailing + "\r\n"); }

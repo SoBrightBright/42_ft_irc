@@ -18,27 +18,21 @@ void	Pass::execute(Server &server, Client &client, const Message &msg) {
 	const std::vector<std::string> &params = msg.getParameter();
 
 	if (params.empty()) {
-		/*
-			client.sendReply(IrcReply::formatReplyWithParam(server.getName(), IrcNumeric::ERR_NEEDMOREPARAMS,
-											IrcReply::targetname(client);, "PASS", "Not enough parameters"));
-		*/
+		client.sendReply(IrcReply::formatReplyWithParameter(IrcNumeric::ERR_NEEDMOREPARAMS,
+							IrcReply::targetname(client), "PASS", "Not enough parameters"));
 		return;
 	}
 	
 	if (client.isRegistered()) {
-		/*
-			client.sendReply(IrcReply::formatReply(server.getName(),IrcNumeric::ERR_ALREADYREGISTERED,
-											IrcReply::targetname(client);, "You may not reregister"));
-		*/
+			client.sendReply(IrcReply::formatReply(IrcNumeric::ERR_ALREADYREGISTERED,
+							IrcReply::targetname(client), "You may not reregister"));
 		return;
 	}
 	
-	/*
-		if (!server.checkPassword(params[0])) {
-			client.sendReply(IrcReply::formatReply(server.getName(),IrcNumeric::ERR_PASSWDMISMATCH,
-										 IrcReply::targetname(client);, "You may not reregister"));	
+	if (!server.checkPassword(params[0])) {
+			client.sendReply(IrcReply::formatReply(IrcNumeric::ERR_PASSWDMISMATCH,
+							IrcReply::targetname(client), "You may not reregister"));	
 		}
 
-		client.setPasswordVerified(true);
-	*/
+	client.setAuthenticated(true);
 }
