@@ -198,8 +198,6 @@ void	Channel::handleJoin(Client &user, const std::string &key)
 	sendToOne(user, makeReply(Numeric::RPL_NAMREPLY, user.getNickname(), "= " + _name + " :" + users));
 	sendToOne(user, makeReply(Numeric::RPL_ENDOFNAMES, user.getNickname(), _name + " :End of /NAMES list"));
 }
-// TODO:: notice about all commands their server receives which affect the channel
-// MODE, KICK, PART, QUIT and of course PRIVMSG/NOTICE
 
 void	Channel::handlePart(Client &user, const std::string &message)
 {
@@ -378,15 +376,6 @@ void	Channel::handleMode(Client &user, const std::string &modes, const std::vect
 				else
 					setModeKey(false, "");
 				break ;
-			
-			case 'o':
-				// Client *client = findClientByNickname(user, modeParams[paramIndex]);
-				// if (!client)
-				//	sendToOne(user, makeReply(Numeric::ERR_USERNOTINCHANNEL, user.getNickname(), modeParams[paramIndex] + " " + _name + " :They aren't on that channel"));
-				// setModeOperator(enable, client);
-				// if (paramIndex < modeParams.size())
-				// 	paramIndex++;
-				break ;
 
 			case 'l':
 				if (enable && paramIndex < modeParams.size())
@@ -400,6 +389,25 @@ void	Channel::handleMode(Client &user, const std::string &modes, const std::vect
 				break ;
 		}
 	}
+	if (!modes.empty() && modes != "+" && modes != "-")
+	{
+		std::string paramsStr;
+		for (size_t i = 0; i < modeParams.size(); i++)
+			paramsStr += " " + modeParams[i];
+		sendToAll(makeCommand(user, "MODE", _name + " " + modes + paramsStr));
+	}
+}
+
+void	Channel::handleModeOperator(bool enable, Client &target, Client &user)
+{
+	if (!isMember(target))
+	{
+		sendToOne(target, makeReply(Numeric::ERR_USERNOTINCHANNEL, target.getNickname(), _name + " :They aren't on that channel"));
+		return ;
+	}
+	setModeOperator(enable, target);
+	std::string modeStr = enable ? "+o" : "-o";
+	sendToAll(makeCommand(user, modeStr, _name + " " + target.getNickname()));
 }
 
 void	Channel::handleChannelPrivmsg(Client &sender, const std::string &message)

@@ -5,7 +5,7 @@
 #include "../parse/Message.hpp"
 #include "../common/IrcHelpers.hpp" // TODO: 폴더 구조 맞추고 수정할 것
 
-#include "../channel/Channel.hpp"
+#include "../channel_ch/Channel.hpp" // TODO: 수정할 것
 
 Privmsg::Privmsg() {}
 Privmsg::~Privmsg() {}

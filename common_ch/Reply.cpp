@@ -1,5 +1,5 @@
-#include "network/Server.hpp"
-#include "Client.hpp"
+#include "../network/Server.hpp"
+#include "../Client.hpp"
 #include "Reply.hpp"
 #include <sstream>
 

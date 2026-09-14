@@ -5,8 +5,8 @@
 #include <vector>
 #include <sstream>
 #include <algorithm>
-#include "Client.hpp"
-#include "Reply.hpp"
+#include "../Client.hpp"
+#include "../common_ch/Reply.hpp" // TODO: 수정할 것
 
 class Client;
 
@@ -68,7 +68,7 @@ class Channel
 		void	handleInvite(Client &invitingUser, Client &invitedUser);
 		void	handleTopic(Client &user, const std::string &topic, bool hasTopic);
 		void	handleMode(Client &user, const std::string &modes, const std::vector<std::string> &modeParams);
-		void	handlePersonalPrivmsg(Client &sendingUser, Client &sentUser, const std::string &message);
+		void	handleModeOperator(bool enable, Client &target, Client &executor);
 		void	handleChannelPrivmsg(Client &sender, const std::string &message);
 
 		// getters
