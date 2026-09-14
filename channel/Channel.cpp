@@ -11,6 +11,11 @@ Channel::Channel()
 	// std::string, std::vector 같은 클래스 타입은 값이 없을 때 기본으로 뭘로 시작할지를 스스로 이미 정의해두고 있어서 아무것도 안 써둬도 안전하게 초기화 가능.
 }
 
+Channel::~Channel()
+{
+
+}
+
 Channel::Channel(const std::string &name)
 : _name(name), _topic(""), _key(""), _userLimit(0), _inviteOnly(false), _topicByOpOnly(false)
 {
@@ -37,11 +42,6 @@ Channel &Channel::operator=(const Channel &other)
 		_invitedUserNicks = other._invitedUserNicks;
 	}
 	return *this;
-}
-
-Channel::~Channel()
-{
-
 }
 
 //////////////////////////////////////////////////
@@ -198,9 +198,6 @@ void	Channel::handleJoin(Client &user, const std::string &key)
 	sendToOne(user, makeReply(Numeric::RPL_NAMREPLY, user.getNickname(), "= " + _name + " :" + users));
 	sendToOne(user, makeReply(Numeric::RPL_ENDOFNAMES, user.getNickname(), _name + " :End of /NAMES list"));
 }
-// notice about all commands their server receives which affect the channel
-// MODE, KICK, PART, QUIT and of course PRIVMSG/NOTICE
-// ERR_NEEDMOREPARAMS
 
 void	Channel::handlePart(Client &user, const std::string &message)
 {
@@ -220,8 +217,6 @@ void	Channel::handlePart(Client &user, const std::string &message)
 
 	sendToAll(makeCommand(user, "PART", _name + " :" + reason));
 }
-// ERR_NEEDMOREPARAMS
-// ERR_NOSUCHCHANNEL
 
 void	Channel::handleKick(Client &kickingUser, Client &kickedUser, const std::string &comment)
 {
@@ -251,9 +246,6 @@ void	Channel::handleKick(Client &kickingUser, Client &kickedUser, const std::str
 
 	sendToAll(makeCommand(kickingUser, "KICK", _name + " " + kickedUser.getNickname()));
 }
-// ERR_NEEDMOREPARAMS
-// ERR_NOSUCHCHANNEL
-// ERR_BADCHANMASK
 
 void	Channel::handleTopic(Client &user, const std::string &topic, bool hasTopicParam)
 {
@@ -278,10 +270,6 @@ void	Channel::handleTopic(Client &user, const std::string &topic, bool hasTopicP
 	_topic = topic;
 	sendToAll(makeCommand(user, "TOPIC", _name + " :" + _topic));
 }
-// C 파싱
-// ERR_NEEDMOREPARAMS
-
-// ERR_NOCHANMODES
 
 void	Channel::handleInvite(Client &invitingUser, Client &invitedUser)
 {
@@ -308,8 +296,6 @@ void	Channel::handleInvite(Client &invitingUser, Client &invitedUser)
 	sendToOne(invitingUser, makeReply(Numeric::RPL_INVITING, invitingUser.getNickname(), _name + " " + invitedUser.getNickname()));
 	sendToOne(invitedUser, makeCommand(invitingUser, "INVITE", invitedUser.getNickname() + " " + _name));
 }
-// ERR_NEEDMOREPARAMS
-// ERR_NOSUCHNICK
 
 std::string	Channel::buildModeString() const
 {
@@ -390,14 +376,6 @@ void	Channel::handleMode(Client &user, const std::string &modes, const std::vect
 				else
 					setModeKey(false, "");
 				break ;
-			
-			case 'o':
-				// TODO:: setModeOperator(enable, client );
-				// 닉네임 문자열로 Client * 찾기 -> server 측이랑 같이 봐야 함
-				// if (paramIndex < modeParams.size())
-				//	paramIndex++;
-				// ERR_USERNOTINCHANNEL
-				break ;
 
 			case 'l':
 				if (enable && paramIndex < modeParams.size())
@@ -411,16 +389,26 @@ void	Channel::handleMode(Client &user, const std::string &modes, const std::vect
 				break ;
 		}
 	}
+	if (!modes.empty() && modes != "+" && modes != "-")
+	{
+		std::string paramsStr;
+		for (size_t i = 0; i < modeParams.size(); i++)
+			paramsStr += " " + modeParams[i];
+		sendToAll(makeCommand(user, "MODE", _name + " " + modes + paramsStr));
+	}
 }
-//	ERR_NEEDMOREPARAMS
-//  ERR_NOCHANMODES
 
-void	Channel::handlePrivmsg(Client &sender, Client &recipient, const std::string &message)
+void	Channel::handleModeOperator(bool enable, Client &target, Client &user)
 {
-	sendToOne(recipient, makeCommand(sender, "PRIVMSG", recipient.getNickname() + " :" + message));
+	if (!isMember(target))
+	{
+		sendToOne(target, makeReply(Numeric::ERR_USERNOTINCHANNEL, target.getNickname(), _name + " :They aren't on that channel"));
+		return ;
+	}
+	setModeOperator(enable, target);
+	std::string modeStr = enable ? "+o" : "-o";
+	sendToAll(makeCommand(user, modeStr, _name + " " + target.getNickname()));
 }
-// :로 시작 안 하면 안 되는 것 같은?
-// TODO:: 개인 DM은 애초에 채널 객체에 들어올 필요가 없어서 밖으로 빼는 게 나을 것 같음.
 
 void	Channel::handleChannelPrivmsg(Client &sender, const std::string &message)
 {
@@ -431,9 +419,6 @@ void	Channel::handleChannelPrivmsg(Client &sender, const std::string &message)
 	}
 	sendToAllExcept(sender, makeCommand(sender, "PRIVMSG", _name + " :" + message));
 }
-// ERR_NORECIPIENT
-// ERR_NOTEXTTOSEND
-// ERR_NOSUCHNICK
 
 void	Channel::sendToOne(Client &targetUser, const std::string &message) const
 {

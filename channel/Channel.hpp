@@ -6,7 +6,7 @@
 #include <sstream>
 #include <algorithm>
 #include "../Client.hpp"
-#include "Reply.hpp"
+#include "../common/Reply.hpp"
 
 class Client;
 
@@ -68,7 +68,7 @@ class Channel
 		void	handleInvite(Client &invitingUser, Client &invitedUser);
 		void	handleTopic(Client &user, const std::string &topic, bool hasTopic);
 		void	handleMode(Client &user, const std::string &modes, const std::vector<std::string> &modeParams);
-		void	handlePrivmsg(Client &sendingUser, Client &sentUser, const std::string &message);
+		void	handleModeOperator(bool enable, Client &target, Client &executor);
 		void	handleChannelPrivmsg(Client &sender, const std::string &message);
 
 		// getters
@@ -81,17 +81,3 @@ class Channel
 };
 
 #endif
-
-
-// solee
-// 채널 객체 저장소와 새 채널 생성/삭제 담당하는 것은 누구??
-// 클라이언트의 채널 소속 목록 (_joinedChannels)을 추가핧 것인지?
-// // _write_buffer가 public? or setter? (reference면 안 되지 않나?)
-
-// jimkim
-// 에러코드? 파싱 측에서? 여기서?
-// handleMode에서 어떤 형태로 들어올 것인지, +/-도 나눠서?판단해서? 들어오는지
-// TOPIC (조회와 빈 문자열 구분)을 어떻게 줄 것인지 (bool hasTopicParam?)
-
-
-// numeric reply - sendToOne/sendToAll 문자열들 코드 번호 형태로 바꾸기

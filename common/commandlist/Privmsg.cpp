@@ -1,11 +1,10 @@
 #include "Privmsg.hpp"
 
-#include "../network/Server.hpp"
-#include "../Client.hpp"
-#include "../parse/Message.hpp"
-#include "../common/IrcHelpers.hpp" // TODO: 폴더 구조 맞추고 수정할 것
-
-#include "../channel_ch/Channel.hpp" // TODO: 수정할 것
+#include "../../Client.hpp"
+#include "../../network/Server.hpp"
+#include "../../parse/Message.hpp"
+#include "../../channel/Channel.hpp"
+#include "../../common/IrcHelpers.hpp"
 
 Privmsg::Privmsg() {}
 Privmsg::~Privmsg() {}

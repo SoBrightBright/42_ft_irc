@@ -1,7 +1,7 @@
 #ifndef INVITE_HPP
 # define INVITE_HPP
 
-# include "ICommand.hpp" // 합치면 경로 문제 사라질 예정
+# include "ICommand.hpp"
 
 	class	Invite : public ICommand {
 		private:

@@ -57,7 +57,7 @@ void Server::run()
 
 	while (true)
 	{
-        int poll_count = poll(&_poll_fds[0], _poll_fds.size(), -1);
+        int poll_count = poll(&_poll_fds[0], _poll_fds.size(), -1); // poll() 호출, -1은 무한 대기
         if (poll_count < 0) throw std::runtime_error("Poll error");
 
         for (size_t i = 0; i < _poll_fds.size(); ++i)
