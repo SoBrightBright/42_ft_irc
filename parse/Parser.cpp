@@ -47,10 +47,11 @@ Parser::~Parser() {}
 Parser::Parser(const Parser &obj) { (void)obj; }
 Parser	&Parser::operator=(const Parser &obj) { (void)obj; return *this;}
 
-void	Parser::operate(Server &server, Client &client, const std::string &raw) {
+bool	Parser::operate(Server &server, Client &client, const std::string &raw) {
 	Message	msg;
 
 	if (!msg.spliter(raw))
-		return;
+		return false;
 	_commands.dispatch(server,client, msg);
+	return true;
 }
