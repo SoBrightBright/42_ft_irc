@@ -35,19 +35,13 @@ void	CommandRegistry::dispatch(Server &server, Client &client, const Message &me
 
 		if (client.isRegistered())
 			target = client.getNickname();
-		/*
-			client.sendReply(IrcReply::formatReplyWithParam(server.getName(), IrcNumeric::ERR_UNKNOWNCOMMAND,
-															target, message.getCommand(), "Unknown command"));
-		*/
+		client.sendReply(IrcReply::formatReplyWithParameter(IrcNumeric::ERR_UNKNOWNCOMMAND, target, message.getCommand(), "Unknown command"));
 		return;
 	}
 
 	// no login with login command: error 451
 	if (it->second->needLogin() && !client.isRegistered()) {
-		/*
-			client.sendReply(IrcReply::formatReply(server.getName(), IrcNumeric::ERR_NOTREGISTERED,
-													"*", "You have not registered"));
-		*/
+			client.sendReply(IrcReply::formatReply(IrcNumeric::ERR_NOTREGISTERED,"*", "You have not registered"));
 		return;
 	}
 

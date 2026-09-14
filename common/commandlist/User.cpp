@@ -23,18 +23,14 @@ void	User::execute(Server &server, Client &client, const Message &msg) {
 		target = client.getNickname();
 	
 	if (params.size() < 3 || !msg.hasTrailing()) {
-		/*
-			client.sendReply(IrcReply::formatReplyWithParam(server.getName(), IrcNumeric::ERR_NEEDMOREPARAMS,
-															target, "USER", "Not enough parameters"));
-		*/
+		client.sendReply(IrcReply::formatReplyWithParameter(IrcNumeric::ERR_NEEDMOREPARAMS,
+													target, "USER", "Not enough parameters"));
 		return ;
 	}
 
 	if (client.isRegistered()) {
-		/*
-			client.sendReply(IrcReply::formatReply(server.getName(), IrcNumeric::ALREADYREGISTERED,
-												   target, "You may not register"));
-		*/
+		client.sendReply(IrcReply::formatReply(IrcNumeric::ERR_ALREADYREGISTERED,
+											   target, "You may not register"));
 		return ;
 	}
 

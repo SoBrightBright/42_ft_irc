@@ -1,5 +1,5 @@
-#include "network/Server.hpp"
-#include "Client.hpp"
+#include "../network/Server.hpp"
+#include "../Client.hpp"
 #include "Reply.hpp"
 #include <sstream>
 
@@ -30,4 +30,9 @@ std::string makeCommand(const Client &client, const std::string &cmd, const std:
 		return ":" + prefix + " " + cmd + " " + rest;
 	else
 		return ":" + prefix + " " + cmd;
+}
+
+void	handlePersonalPrivmsg(Client &sender, Client &recipient, const std::string &message)
+{
+	recipient.getWriteBuffer() += makeCommand(sender, "PRIVMSG", recipient.getNickname() + " :" + message);
 }

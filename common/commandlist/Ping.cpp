@@ -15,6 +15,8 @@ bool	Ping::needLogin() const { return false; }
 
 // PING <token>: client->server 연결상태 확인. 응답 전송(POng <token> 되돌려주기)
 void	Ping::execute(Server &server, Client &client, const Message &msg) {
+	(void)server;
+
 	const std::vector<std::string> &params = msg.getParameter();
 	std::string	token;
 
@@ -26,15 +28,11 @@ void	Ping::execute(Server &server, Client &client, const Message &msg) {
 		std::string target = "*";
 		if (client.isRegistered()) { 
 			target = client.getNickname();
-			/*
-				client.sendReply(IrcReply::formatReply(server.getName(), IrcNumeric::ERR_NOORIGIN,
-														target, "No origin specified"));
-			*/
+			client.sendReply(IrcReply::formatReply(IrcNumeric::ERR_NOORIGIN,
+											 target, "No origin specified"));
 			return;
 		}
 	}
 
-	/*
-		client.sendReply(IrcReply::formatCommand(server.getName(), "PONG", token));
-	*/
+	client.sendReply(IrcReply::formatCommand("PONG", token));
 }

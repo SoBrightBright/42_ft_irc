@@ -25,12 +25,10 @@
 
 	namespace IrcReply {
 		std::string	targetname(const Client &client);
-		std::string	formatReply(const std::string &servername, const std::string code,
-								const std::string &target, const std::string &trailing);
-		std::string	formatReplyWithParameter(const std::string &servername, const std::string code,
-											 const std::string &target, const std::string &parameter,
-											 const std::string &trailing);
-		std::string	formatCommand(const std::string &servername, const std::string &command, const std::string &trailing);
+		std::string	formatReply(const std::string code, const std::string &target, const std::string &trailing);
+		std::string	formatReplyWithParameter(const std::string code, const std::string &target,
+											 const std::string &parameter, const std::string &trailing);
+		std::string	formatCommand(const std::string &command, const std::string &trailing);
 	}
 
 #endif

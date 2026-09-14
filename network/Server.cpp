@@ -221,13 +221,12 @@ void Server::receiveData(int client_fd)
     {
         std::string line = _clients[client_fd]->popLine();
         
-        // Message msg; 이 밑으로 파싱하고 연결하는 부분
-        // if (!msg.spliter(line))
-        // {
-        //     std::cerr << "Failed to parse message: " << line << std::endl;
-        //     continue;
-        // }
-        // commandHandler.dispatch(_clients[client_fd], msg);
+        Parser parser; //parser 부분은 파싱과 연결됨
+        if (!parser.operate(*this, *_clients[client_fd], line))
+        {
+            std::cerr << "Failed to parse message: " << line << std::endl;
+            continue;
+        }
     }
 }
 

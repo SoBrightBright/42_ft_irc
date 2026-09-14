@@ -12,11 +12,15 @@ namespace Numeric
 	const int	RPL_NAMREPLY = 353;
 	const int	RPL_ENDOFNAMES = 366;
 	const int	RPL_INVITING = 341;
+	const int	ERR_NOSUCHNICK = 401;
 	const int	ERR_NOSUCHCHANNEL = 403;
 	const int	ERR_CANNOTSENDTOCHAN = 404;
+	const int	ERR_NORECIPIENT = 411;
+	const int	ERR_NOTEXTTOSEND = 412;
 	const int	ERR_NOTONCHANNEL = 442;
 	const int	ERR_USERNOTINCHANNEL = 441;
 	const int	ERR_USERONCHANNEL = 443;
+	const int	ERR_NEEDMOREPARAMS = 461;
 	const int	ERR_KEYSET = 467;
 	const int	ERR_INVITEONLYCHAN = 473;
 	const int	ERR_BADCHANNELKEY = 475;
@@ -27,5 +31,7 @@ namespace Numeric
 
 std::string		makeReply(int code, const std::string &nick, const std::string &text);
 std::string		makeCommand(const Client &client, const std::string &cmd, const std::string &rest);
+
+void			handlePersonalPrivmsg(Client &sender, Client &recipient, const std::string &message);
 
 #endif

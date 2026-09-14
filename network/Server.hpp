@@ -9,6 +9,7 @@
 #include "../Client.hpp"
 #include "../channel/Channel.hpp"
 #include "../parse/Message.hpp"
+#include "../parse/Parser.hpp"
 
 class Server
 {
