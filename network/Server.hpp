@@ -20,7 +20,7 @@ class Server
         std::vector<struct pollfd>      _poll_fds;
 
         std::map<int, Client*>          _clients;
-        std::map<std::string, Channel*> _channels;
+        std::map<std::string, Channel*> _channels; // string은 채널이름, Channel*은 채널의 포인터
 
         std::vector<int>                     _to_disconnected;
 
