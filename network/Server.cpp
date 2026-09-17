@@ -97,8 +97,12 @@ void Server::markForDisconnection(int client_fd) // 클라이언트 정리하기
 void Server::cleanupDisconnected() // _to_disconnected 벡터에 있는 클라이언트들 정리
 {
     for (size_t i = 0; i < _to_disconnected.size(); ++i)
+    {
         disconnectClient(_to_disconnected[i]);
+        continue;
+    }
     _to_disconnected.clear();
+    cleanupDisconnected(); // 재귀 호출로 _to_disconnected 벡터에 새로 추가된 클라이언트들도 정리
 }
 
 std::string Server::getName()
@@ -126,25 +130,6 @@ void Server::disconnectClient(Client& client, const std::string& reason)
     int client_fd = client.getFd();
     disconnectClient(client_fd);
     std::cout << "Client disconnected: FD " << client_fd << ", Reason: " << reason << std::endl;
-}
-
-Channel* Server::findChannel(const std::string &name)
-{
-    std::map<std::string, Channel*>::iterator it = _channels.find(name);
-    if (it != _channels.end())
-        return it->second;
-    return NULL;
-}
-
-Channel* Server::findOrCreateChannel(const std::string &name)
-{
-    Channel* channel = findChannel(name);
-    if (channel)
-        return channel;
-
-    Channel* new_channel = new Channel(name);
-    _channels[name] = new_channel;
-    return new_channel;
 }
 
 Client* Server::findClientByNickname(const std::string &nickname)
@@ -215,7 +200,6 @@ void Server::receiveData(int client_fd)
 
     buffer[bytes_received] = '\0';
     _clients[client_fd]->getReadBuffer().append(buffer, bytes_received);
-    std::cout << "receiveData 확인" << std::endl;
 
     while (_clients[client_fd]->hasCompleteLine())
     {
@@ -228,6 +212,8 @@ void Server::receiveData(int client_fd)
             continue;
         }
     }
+
+    updatePoll(client_fd);
 }
 
 void Server::sendData(int client_fd) {

@@ -8,7 +8,7 @@ PARSE_DIR	= ./parse/
 COMMON_DIR	= ./common/
 COMMAND_DIR	= ./common/commandlist/
 
-SRCS = main.cpp Client.cpp $(NETWORK_DIR)Server.cpp \
+SRCS = main.cpp Client.cpp $(NETWORK_DIR)Server.cpp $(NETWORK_DIR)ChannelHandler.cpp \
 	$(CHANNEL_DIR)Channel.cpp \
 	$(PARSE_DIR)Message.cpp $(PARSE_DIR)CommandRegistry.cpp $(PARSE_DIR)Parser.cpp \
 	$(COMMON_DIR)IrcHelpers.cpp $(COMMON_DIR)Reply.cpp \
