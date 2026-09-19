@@ -1,9 +1,12 @@
 #include "./network/Server.hpp"
 #include <iostream>
 #include <cstdlib>
+#include <csignal>
 
 int main(int argc, char **argv)
 {
+    signal(SIGPIPE, SIG_IGN); // SIGPIPE 시그널 무시
+
     if (argc != 3) {
         std::cerr << "Usage: ./ircserv <port> <password>" << std::endl;
         return 1;

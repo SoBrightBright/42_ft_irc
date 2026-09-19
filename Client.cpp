@@ -5,7 +5,7 @@
 // Constructors and Destructors
 Client::Client(int fd):
 	_fd(fd), _nickname(""), _username(""), _realname(""), _is_authenticated(false),
-	_is_registered(false), _read_buffer(""), _write_buffer("") {}
+	_is_registered(false), _read_buffer(""), _write_buffer(""), _lastActivity(std::time(NULL)) {}
 
 Client::Client(const Client& other)
 {
@@ -17,6 +17,7 @@ Client::Client(const Client& other)
 	_is_registered = other._is_registered;
 	_read_buffer = other._read_buffer;
 	_write_buffer = other._write_buffer;
+	_lastActivity = other._lastActivity;
 }
 
 Client &Client::operator=(const Client& other)
@@ -31,6 +32,7 @@ Client &Client::operator=(const Client& other)
 		_is_registered = other._is_registered;
 		_read_buffer = other._read_buffer;
 		_write_buffer = other._write_buffer;
+		_lastActivity = other._lastActivity;
 	}
 	return *this;
 }
@@ -90,3 +92,6 @@ std::string Client::popLine()
 	_read_buffer.erase(0, pos + 1);
 	return line;
 }
+
+void Client::updateLastActivity() { _lastActivity = std::time(NULL); }
+long Client::getIdleTime() const { return static_cast<long>(std::difftime(std::time(NULL), _lastActivity));}

@@ -16,8 +16,6 @@ bool	Pong::needLogin() const { return false; }
 // PONG <token>: client->server 연결상태 확인 응답. 활동시간 갱신
 void	Pong::execute(Server &server, Client &client, const Message &msg) {
 	(void)server;
-	(void)client;
 	(void)msg;
-	// client.updateLastActivity() ? 를 만들기를 권장.
-	// 형식 오류여도 별도 에러 응답 없이 무시
+	client.updateLastActivity();
 }

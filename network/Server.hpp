@@ -6,10 +6,14 @@
 #include <map>
 #include <poll.h>
 #include <arpa/inet.h>
+#include <csignal>
 #include "../Client.hpp"
 #include "../channel/Channel.hpp"
 #include "../parse/Message.hpp"
 #include "../parse/Parser.hpp"
+
+// hpp에 선언 (상수값은 임의. 합의 하에 90~300에서 정하면 됨)
+const long TIMEOUT_SECONDS = 120; 
 
 class Server
 {
@@ -17,6 +21,8 @@ class Server
         int	                            _port;
         int                             _server_fd;
         std::string                     _password;
+
+        Parser                         _parser;
 
         std::vector<struct pollfd>      _poll_fds;
 
@@ -43,17 +49,18 @@ class Server
 
         Client* findClientByNickname(const std::string &nickname); // 지금까지 몇 번 말씀드렸던 것!! nickname으로 Client * 찾아서 반환. 없으면 NULL 반환
 
+        void    removeChannelIfEmpty(const std::string &channelName);
+
     private:
         void    acceptNewClient();
         void    receiveData(int client_fd);
         void    sendData(int client_fd);
-        void    disconnectClient(int client_fd);
-        void    updatePoll(int client_fd);
+        void    disconnectClient(int client_fd); 
+        void    updatePoll();
+        void    removeClientFromAllChannels(Client&, const std::string& reason);
 
         void    markForDisconnection(int client_fd);
         void    cleanupDisconnected();
-
-        void    removeChannelIfEmpty(const std::string &channelName);
     };
 
 #endif

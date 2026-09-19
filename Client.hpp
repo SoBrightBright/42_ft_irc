@@ -3,6 +3,7 @@
 
 # include <string>
 # include <map>
+# include <ctime>
 //# include "channel/Channel.hpp"
 
 class Client
@@ -22,6 +23,8 @@ class Client
 
         std::string _read_buffer;        // 수신된 조각난 데이터를 모아두는 버퍼 (solee -> jimkim)
         std::string _write_buffer;       // 전송을 대기 중인 데이터를 모아두는 버퍼 (soolee -> solee)
+
+        std::time_t  _lastActivity;      // 마지막 활동 시간 (초 단위)
         
         // 들어가있는 채널 목록
     public:
@@ -42,19 +45,21 @@ class Client
         void        setNickname(const std::string& nickname);
         void        setUsername(const std::string& username);
         void        setRealname(const std::string& realname);
-
         void        setAuthenticated(bool status);
         void        setRegistered(bool status);
         void        setPasswordVerified(bool status);
 
-        void        sendReply(const std::string& message);
-
         bool        hasCompleteLine() const;
+        void        sendReply(const std::string& message);
+        std::string popLine();
+
         bool        hasPasswordVerified() const;
 
         bool        isAuthenticated() const;
         bool        isRegistered() const;
-        std::string popLine();
+
+        void        updateLastActivity();
+        long        getIdleTime() const;
 };
 
 #endif

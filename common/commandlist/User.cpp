@@ -35,5 +35,5 @@ void	User::execute(Server &server, Client &client, const Message &msg) {
 	}
 
 	client.setUsername(params[0]);
-	// client.setRealname(msg.getTrailing());
+	client.setRealname(msg.getTrailing());
 }
