@@ -5,6 +5,10 @@
 	class Client;
 	
 	namespace IrcNumeric {
+		// 등록 완료 시 웰컴 메시지
+		const std::string RPL_WELCOME  = "001";
+		const std::string RPL_YOURHOST = "002";
+		
 		// common (parser, registry)
 		const std::string	ERR_UNKNOWNCOMMAND	= "421";
 		const std::string	ERR_NOTREGISTERED	= "451";

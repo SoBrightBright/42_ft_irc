@@ -13,7 +13,7 @@
 #include "../parse/Parser.hpp"
 
 // hpp에 선언 (상수값은 임의. 합의 하에 90~300에서 정하면 됨)
-const long TIMEOUT_SECONDS = 120; 
+const long TIMEOUT_SECONDS = 300; 
 
 class Server
 {

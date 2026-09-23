@@ -4,7 +4,9 @@
 # include <string>
 # include <map>
 # include <ctime>
-//# include "channel/Channel.hpp"
+# include "common/IrcHelpers.hpp"
+
+class Channel;
 
 class Client
 {
@@ -19,7 +21,7 @@ class Client
         bool        _is_registered;      // NICK과 USER 설정까지 모두 마쳤는지 여부
         bool        _is_password_verified; // 비밀번호 검증 여부
 
-        //std::map<std::string, Channel*> _joinedChannels; // 클라이언트가 참여한 채널 목록
+        std::map<std::string, Channel*> _joinedChannels; // 클라이언트가 참여한 채널 목록
 
         std::string _read_buffer;        // 수신된 조각난 데이터를 모아두는 버퍼 (solee -> jimkim)
         std::string _write_buffer;       // 전송을 대기 중인 데이터를 모아두는 버퍼 (soolee -> solee)

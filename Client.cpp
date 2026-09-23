@@ -1,5 +1,5 @@
 #include "Client.hpp"
-
+# include "channel/Channel.hpp"
 #include <string>
 #include <iostream>
 
@@ -98,6 +98,9 @@ void Client::tryCompleteRegistration()
     if (!isRegistered() && hasPasswordVerified() && !getNickname().empty() && !getUsername().empty())
 	{
         _is_registered = true;
-        // 여기서 웰컴 메시지(001 RPL_WELCOME 등)도 같이 보내는 게 일반적
+		sendReply(IrcReply::formatReply(IrcNumeric::RPL_WELCOME, getNickname(),
+            "Welcome to the ft_irc Network, " + getNickname() + "!" + getUsername() + "@localhost"));
+		sendReply(IrcReply::formatReply(IrcNumeric::RPL_YOURHOST, getNickname(),
+            "Your host is ircserv, running version 1.0"));
     }
 }
