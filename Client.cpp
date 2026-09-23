@@ -1,6 +1,7 @@
 #include "Client.hpp"
 
 #include <string>
+#include <iostream>
 
 // Constructors and Destructors
 Client::Client(int fd):
@@ -63,8 +64,6 @@ void Client::setUsername(const std::string& username) { _username = username; }
 
 void Client::setRealname(const std::string& realname) { _realname = realname; }
 
-void Client::setAuthenticated	(bool status) { _is_authenticated = status; }
-
 void Client::setRegistered(bool status) { _is_registered = status; }
 
 void Client::setPasswordVerified(bool status) { _is_password_verified = status; }
@@ -78,8 +77,6 @@ void Client::sendReply(const std::string& message)
 bool Client::hasCompleteLine() const { return _read_buffer.find('\n') != std::string::npos; }
 
 bool Client::hasPasswordVerified() const { return _is_password_verified; }
-
-bool Client::isAuthenticated() const { return _is_authenticated; }
 
 bool Client::isRegistered() const { return _is_registered; }
 
@@ -95,3 +92,12 @@ std::string Client::popLine()
 
 void Client::updateLastActivity() { _lastActivity = std::time(NULL); }
 long Client::getIdleTime() const { return static_cast<long>(std::difftime(std::time(NULL), _lastActivity));}
+
+void Client::tryCompleteRegistration()
+{
+    if (!isRegistered() && hasPasswordVerified() && !getNickname().empty() && !getUsername().empty())
+	{
+        _is_registered = true;
+        // 여기서 웰컴 메시지(001 RPL_WELCOME 등)도 같이 보내는 게 일반적
+    }
+}

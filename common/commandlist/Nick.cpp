@@ -26,12 +26,12 @@ static bool	isValidNickname(const std::string &newer) {
 		return false;
 
 	char first = newer[0];
-	if (!std::isalpha(static_cast<unsigned char>(first) && !isSpecial(first)))
+	if (!std::isalpha(static_cast<unsigned char>(first)) && !isSpecial(first))
 		return false;
 
 	for (size_t	idx = 1; idx < newer.size(); ++idx) {
 		char c = newer[idx];
-		if (!std::isalnum(static_cast<unsigned char>(c) && !isSpecial(c)) && c != '-')
+		if (!std::isalnum(static_cast<unsigned char>(c)) && !isSpecial(c) && c != '-')
 			return false;
 	}
 	return true;
@@ -49,20 +49,23 @@ void	Nick::execute(Server &server, Client &client, const Message &msg) {
 	if (params.empty()) {
 		client.sendReply(IrcReply::formatReply(IrcNumeric::ERR_NONICKNAMEGIVEN,
 											   target, "No nickname given"));
-
-		const std::string &newNickname = params[0];
-		
-		if (!isValidNickname(newNickname)) {
-			client.sendReply(IrcReply::formatReplyWithParameter(IrcNumeric::ERR_ERRONEUSNICKNAME,
-								 					target, newNickname, "Erroneous nickname"));
-			return;
-		}
-
-		if (server.isNicknameTaken(newNickname)) {
-			client.sendReply(IrcReply::formatReplyWithParameter(IrcNumeric::ERR_ERRNICKNAMEINUSE,
-								 				target, newNickname, "Nickname is already in use"));
-		}
-
-		client.setNickname(newNickname);
+		return;
 	}
+	
+	const std::string &newNickname = params[0];
+		
+	if (!isValidNickname(newNickname)) {
+		client.sendReply(IrcReply::formatReplyWithParameter(IrcNumeric::ERR_ERRONEUSNICKNAME,
+												target, newNickname, "Erroneous nickname"));
+		return;
+	}
+
+	if (server.isNicknameTaken(newNickname)) {
+		client.sendReply(IrcReply::formatReplyWithParameter(IrcNumeric::ERR_ERRNICKNAMEINUSE,
+								 			target, newNickname, "Nickname is already in use"));
+		return;
+	}
+
+	client.setNickname(newNickname);
+	client.tryCompleteRegistration();
 }

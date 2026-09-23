@@ -6,6 +6,8 @@
 
 #include "../IrcHelpers.hpp"
 
+#include <iostream>
+
 User::User() {}
 User::~User() {}
 User::User(const User &obj) { (void)obj; }
@@ -36,4 +38,5 @@ void	User::execute(Server &server, Client &client, const Message &msg) {
 
 	client.setUsername(params[0]);
 	client.setRealname(msg.getTrailing());
+	client.tryCompleteRegistration();
 }

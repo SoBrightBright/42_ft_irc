@@ -45,7 +45,6 @@ class Client
         void        setNickname(const std::string& nickname);
         void        setUsername(const std::string& username);
         void        setRealname(const std::string& realname);
-        void        setAuthenticated(bool status);
         void        setRegistered(bool status);
         void        setPasswordVerified(bool status);
 
@@ -55,11 +54,12 @@ class Client
 
         bool        hasPasswordVerified() const;
 
-        bool        isAuthenticated() const;
         bool        isRegistered() const;
 
         void        updateLastActivity();
         long        getIdleTime() const;
+        void        tryCompleteRegistration();
 };
+
 
 #endif
