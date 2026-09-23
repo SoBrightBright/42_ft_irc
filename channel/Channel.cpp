@@ -98,6 +98,11 @@ bool	Channel::isOperator(const Client &client) const
 	return false;
 }
 
+bool	Channel::isEmpty() const
+{
+	return _members.empty();
+}
+
 void	Channel::addMember(Client &client)
 {
 	if (!isMember(client))

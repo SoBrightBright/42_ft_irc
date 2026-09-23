@@ -78,6 +78,7 @@ class Channel
 		// checkers
 		bool				isMember(const Client &client) const;
 		bool				isOperator(const Client &client) const;		
+		bool				isEmpty() const;
 };
 
 #endif

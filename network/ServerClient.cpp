@@ -35,8 +35,8 @@ void Server::removeClientFromAllChannels(Client& client, const std::string& reas
         if (!it->second->isMember(client))
             continue;
         it->second->handlePart(client, reason);
-        // if (it->second->isEmpty()) //채널파트
-        //     emptied.push_back(it->first);
+        if (it->second->isEmpty())
+            emptied.push_back(it->first);
     }
     for (size_t i = 0; i < emptied.size(); ++i)
         deleteChannel(emptied[i]);

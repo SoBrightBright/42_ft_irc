@@ -12,18 +12,13 @@
 #include "../common/commandlist/Pong.hpp"
 #include "../common/commandlist/Quit.hpp"
 #include "../common/commandlist/User.hpp"
-
-/*
-	#include "commandlist/Invite.hpp"
-	#include "commandlist/Join.hpp"
-	#include "commandlist/Kick.hpp"
-	#include "commandlist/Mode.hpp"
-	#include "commandlist/Part.hpp"
-	#include "commandlist/Privmsg.hpp"
-	#include "commandlist/Topic.hpp"
-
-	// channel용 함수 목록 추가 
-*/
+#include "../common/commandlist/Invite.hpp"
+#include "../common/commandlist/Join.hpp"
+#include "../common/commandlist/Kick.hpp"
+#include "../common/commandlist/Mode.hpp"
+#include "../common/commandlist/Part.hpp"
+#include "../common/commandlist/Privmsg.hpp"
+#include "../common/commandlist/Topic.hpp"
 
 Parser::Parser() {
 	_commands.registerCommand("NICK", new Nick());
@@ -32,15 +27,14 @@ Parser::Parser() {
 	_commands.registerCommand("PONG", new Pong());
 	_commands.registerCommand("QUIT", new Quit());
 	_commands.registerCommand("USER", new User());
-	/*
-		_commands.registerCommand("INVITE", new Invite());
-		_commands.registerCommand("JOIN", new Join());
-		_commands.registerCommand("KICK", new Kick());
-		_commands.registerCommand("MODE", new Mode());
-		_commands.registerCommand("PART", new Part());
-		_commands.registerCommand("PRIVMSG", new Privmsg());
-		_commands.registerCommand("TOPIC", new Topic());
-	*/
+	_commands.registerCommand("INVITE", new Invite());
+	_commands.registerCommand("JOIN", new Join());
+	_commands.registerCommand("KICK", new Kick());
+	_commands.registerCommand("MODE", new Mode());
+	_commands.registerCommand("PART", new Part());
+	_commands.registerCommand("PRIVMSG", new Privmsg());
+	_commands.registerCommand("TOPIC", new Topic());
+
 }
 
 Parser::~Parser() {}

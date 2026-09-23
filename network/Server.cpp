@@ -84,7 +84,7 @@ void Server::run()
 
             if (_poll_fds[i].revents & (POLLERR | POLLHUP))
             {
-                disconnectClient(current_fd);
+                markForDisconnection(current_fd);
                 continue;
             }
             if (_poll_fds[i].revents & POLLIN)
