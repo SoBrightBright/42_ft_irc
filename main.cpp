@@ -3,9 +3,14 @@
 #include <cstdlib>
 #include <csignal>
 
+volatile std::sig_atomic_t g_stop = 0;
+static void onSignal(int) {g_stop = 1;}
+
 int main(int argc, char **argv)
 {
     signal(SIGPIPE, SIG_IGN); // SIGPIPE 시그널 무시
+    signal(SIGINT, onSignal);
+    signal(SIGQUIT, onSignal);
 
     if (argc != 3) {
         std::cerr << "Usage: ./ircserv <port> <password>" << std::endl;
@@ -24,6 +29,7 @@ int main(int argc, char **argv)
         Server irc_server(port, password); // 서버 객체 생성
         irc_server.init(); // 소켓 셋업, 논블로킹
         irc_server.run();  // poll() 무한 루프
+        std::cout << "IRC Server stopped." << std::endl;
     } catch (const std::exception& e) {
         std::cerr << "Fatal Error: " << e.what() << std::endl;
         return 1;

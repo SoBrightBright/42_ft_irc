@@ -79,7 +79,8 @@ void Server::receiveData(int client_fd)
         return;
     }
 
-    _clients[client_fd]->getReadBuffer().append(buffer, bytes_received);
+    client->getReadBuffer().append(buffer, bytes_received);
+    client->updateLastActivity();
 
     while (client->hasCompleteLine())
     {

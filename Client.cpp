@@ -6,7 +6,7 @@
 // Constructors and Destructors
 Client::Client(int fd):
 	_fd(fd), _nickname(""), _username(""), _realname(""), _is_authenticated(false),
-	_is_registered(false), _read_buffer(""), _write_buffer(""), _lastActivity(std::time(NULL)) {}
+	_is_registered(false), _is_password_verified(false), _read_buffer(""), _write_buffer(""), _lastActivity(std::time(NULL)) {}
 
 Client::Client(const Client& other)
 {
@@ -16,6 +16,7 @@ Client::Client(const Client& other)
 	_realname = other._realname;
 	_is_authenticated = other._is_authenticated;
 	_is_registered = other._is_registered;
+	_is_password_verified = other._is_password_verified;
 	_read_buffer = other._read_buffer;
 	_write_buffer = other._write_buffer;
 	_lastActivity = other._lastActivity;
@@ -31,6 +32,7 @@ Client &Client::operator=(const Client& other)
 		_realname = other._realname;
 		_is_authenticated = other._is_authenticated;
 		_is_registered = other._is_registered;
+		_is_password_verified = other._is_password_verified;
 		_read_buffer = other._read_buffer;
 		_write_buffer = other._write_buffer;
 		_lastActivity = other._lastActivity;

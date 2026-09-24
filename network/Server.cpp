@@ -22,9 +22,15 @@ Server::Server(int port, const std::string& password)
 Server::~Server()
 {
     for (std::map<int, Client*>::iterator it = _clients.begin(); it != _clients.end(); ++it)
+    {
+        close(it->first);
         delete it->second;
+    }
+    _clients.clear();
     for (std::map<std::string, Channel*>::iterator it = _channels.begin(); it != _channels.end(); ++it)
         delete it->second;
+    _channels.clear();
+    _poll_fds.clear();
     if (_server_fd >= 0)
         close(_server_fd);
 }
@@ -43,6 +49,9 @@ void Server::init()
     server_addr.sin_addr.s_addr = INADDR_ANY;
     server_addr.sin_port = htons(_port);
 
+    int opt = 1;
+    if (setsockopt(_server_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0)
+        throw std::runtime_error("setsockopt failed");
     if (bind(_server_fd, (struct sockaddr*)&server_addr, sizeof(server_addr)) < 0)
         throw std::runtime_error("Bind failed");
 
@@ -56,7 +65,7 @@ void Server::run()
 {
     std::cout << "IRC Server started on port " << _port << std::endl;
 
-    while (true)
+    while (!g_stop)
     {
         for (std::map<int, Client*>::iterator it = _clients.begin(); it != _clients.end(); ++it)
         {
@@ -66,7 +75,11 @@ void Server::run()
 
         int poll_count = poll(&_poll_fds[0], _poll_fds.size(), 1000);
         if (poll_count < 0)
+        {
+            if (errno == EINTR)
+                continue;
             throw std::runtime_error("Poll error");
+        }
 
         for (size_t i = 0; i < _poll_fds.size(); ++i)
         {

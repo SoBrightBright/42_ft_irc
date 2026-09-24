@@ -29,7 +29,9 @@ void Server::disconnectClient(Client& client, const std::string& reason)
         {
             if (it->second == &client)
             {
-                it->second->getWriteBuffer() += reason + "\r\n";
+                client.sendReply(reason);
+                delete it->second;
+                _clients.erase(it);
                 break;
             }
         }
