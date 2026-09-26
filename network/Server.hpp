@@ -32,7 +32,18 @@ class Server
         std::map<int, Client*>          _clients;
         std::map<std::string, Channel*> _channels; // string은 채널이름, Channel*은 채널의 포인터
 
-        std::vector<int>                     _to_disconnected;
+        std::map<int, std::string>     _to_disconnected; // client_fd -> reason
+
+        void    acceptNewClient();
+        void    receiveData(int client_fd);
+        void    sendData(int client_fd);
+        void    refreshPollEvents();
+
+        void    cleanupDisconnected();
+        void    disconnect(int client_fd, const std::string& reason);
+        void    removeClientFromAllChannels(Client&, const std::string& reason);
+
+        bool    isMarked(int client_fd) const;
 
     public:
         Server(int port, const std::string& password);
@@ -53,17 +64,7 @@ class Server
         Client* findClientByNickname(const std::string &nickname); // 지금까지 몇 번 말씀드렸던 것!! nickname으로 Client * 찾아서 반환. 없으면 NULL 반환
 
         void    removeChannelIfEmpty(const std::string &channelName);
-
-    private:
-        void    acceptNewClient();
-        void    receiveData(int client_fd);
-        void    sendData(int client_fd);
-        void    disconnectClient(int client_fd); 
-        void    updatePoll();
-        void    removeClientFromAllChannels(Client&, const std::string& reason);
-
-        void    markForDisconnection(int client_fd);
-        void    cleanupDisconnected();
+        void    markForDisconnection(int client_fd, const std::string& reason);        
     };
 
 #endif

@@ -35,11 +35,11 @@ void Server::disconnectClient(Client& client, const std::string& reason)
                 break;
             }
         }
-        markForDisconnection(client.getFd());
+        markForDisconnection(client.getFd(), reason);
         return;
     }
     removeClientFromAllChannels(client, reason);
-    markForDisconnection(client.getFd());
+    markForDisconnection(client.getFd(), reason);
 }
 
 void Server::removeClientFromAllChannels(Client& client, const std::string& reason)
@@ -67,26 +67,28 @@ Client* Server::findClientByNickname(const std::string& nickname)
     return NULL;
 }
 
-void Server::markForDisconnection(int client_fd)
+void Server::markForDisconnection(int client_fd, const std::string& reason)
 {
-    for (size_t i = 0; i < _to_disconnected.size(); ++i)
-    {
-        if (_to_disconnected[i] == client_fd)
-            return;
-    }
-    _to_disconnected.push_back(client_fd);
+    if (_to_disconnected.find(client_fd) == _to_disconnected.end())
+        _to_disconnected[client_fd] = reason;
 }
 
 void Server::cleanupDisconnected()
 {
-    std::vector<int> pending;
-    pending.swap(_to_disconnected);
+    std::map<int, std::string> targets;
 
-    for (size_t i = 0; i < pending.size(); ++i)
-        disconnectClient(pending[i]);
+    targets.swap(_to_disconnected);
+    for (std::map<int, std::string>::iterator it = targets.begin(); it != targets.end(); ++it)
+        disconnect(it->first, it->second);
 }
+
 
 void Server::removeChannelIfEmpty(const std::string& channelName)
 {
     (void)channelName;
+}
+
+bool Server::isMarked(int client_fd) const
+{
+    return _to_disconnected.find(client_fd) != _to_disconnected.end();
 }

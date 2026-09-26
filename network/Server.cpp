@@ -7,13 +7,11 @@
 #include <cerrno>
 #include <stdexcept>
 
-static struct pollfd makePollFd(int fd, short events)
+static volatile std::sig_atomic_t g_running = 1;
+static void handleSignal(int sig)
 {
-    struct pollfd poll_fd;
-    poll_fd.fd = fd;
-    poll_fd.events = events;
-    poll_fd.revents = 0;
-    return poll_fd;
+    (void)sig;
+    g_running = 0;
 }
 
 Server::Server(int port, const std::string& password)
@@ -41,6 +39,10 @@ void Server::init()
     if (_server_fd < 0)
         throw std::runtime_error("Socket creation failed");
 
+    int opt = 1; // 재시작 주소 에러 방지용
+    if (setsockopt(_server_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0)
+        throw std::runtime_error("setsockept failed");
+
     if (fcntl(_server_fd, F_SETFL, O_NONBLOCK) < 0)
         throw std::runtime_error("fcntl failed");
 
@@ -49,79 +51,74 @@ void Server::init()
     server_addr.sin_addr.s_addr = INADDR_ANY;
     server_addr.sin_port = htons(_port);
 
-    int opt = 1;
-    if (setsockopt(_server_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0)
-        throw std::runtime_error("setsockopt failed");
     if (bind(_server_fd, (struct sockaddr*)&server_addr, sizeof(server_addr)) < 0)
         throw std::runtime_error("Bind failed");
-
     if (listen(_server_fd, SOMAXCONN) < 0)
         throw std::runtime_error("Listen failed");
 
-    _poll_fds.push_back(makePollFd(_server_fd, POLLIN));
+    struct pollfd server_pollfd;
+    server_pollfd.fd = _server_fd;
+    server_pollfd.events = POLLIN;
+    server_pollfd.revents = 0;
+    _poll_fds.push_back(server_pollfd);
 }
 
 void Server::run()
 {
+    signal(SIGINT, handleSignal);
+    signal(SIGQUIT, handleSignal);
+    signal(SIGPIPE, SIG_IGN);
+
     std::cout << "IRC Server started on port " << _port << std::endl;
 
     while (!g_stop)
     {
-        for (std::map<int, Client*>::iterator it = _clients.begin(); it != _clients.end(); ++it)
+        refreshPollEvents();
+        int ready = poll(&_poll_fds[0], _poll_fds.size(), -1);
+        if (ready < 0)
         {
-            if (it->second->getIdleTime() > TIMEOUT_SECONDS)
-                disconnectClient(*(it->second), "Ping timeout");
+            if (!g_running)
+                break;
+            continue;
         }
 
-        int poll_count = poll(&_poll_fds[0], _poll_fds.size(), 1000);
-        if (poll_count < 0)
+        size_t count = _poll_fds.size();
+        for (size_t i = 0; i < count; ++i)
         {
-            if (errno == EINTR)
+            struct pollfd p = _poll_fds[i];
+            if (p.revents == 0)
                 continue;
-            throw std::runtime_error("Poll error");
-        }
-
-        for (size_t i = 0; i < _poll_fds.size(); ++i)
-        {
-            if (_poll_fds[i].revents == 0)
-                continue;
-
-            int current_fd = _poll_fds[i].fd;
-
-            if (current_fd == _server_fd)
+            if (p.fd == _server_fd)
             {
-                if (_poll_fds[i].revents & POLLIN)
+                if (p.revents & POLLIN)
                     acceptNewClient();
                 continue;
             }
-
-            if (_poll_fds[i].revents & (POLLERR | POLLHUP))
+            if (p.revents & (POLLERR | POLLNVAL))
             {
-                markForDisconnection(current_fd);
+                markForDisconnection(p.fd, "Connection error");
                 continue;
             }
-            if (_poll_fds[i].revents & POLLIN)
-                receiveData(current_fd);
-            if (_poll_fds[i].revents & POLLOUT)
-                sendData(current_fd);
+            if (p.revents & (POLLIN | POLLHUP))
+                receiveData(p.fd);
+            if ((p.revents & POLLOUT) && !isMarked(p.fd))
+                sendData(p.fd);
         }
         cleanupDisconnected();
     }
 }
 
-void Server::updatePoll()
+void Server::refreshPollEvents()
 {
     for (size_t i = 0; i < _poll_fds.size(); ++i)
     {
         if (_poll_fds[i].fd == _server_fd)
             continue;
 
-        std::map<int, Client*>::iterator it = _clients.find(_poll_fds[i].fd);
-        if (it == _clients.end())
-            continue;
-
         _poll_fds[i].events = POLLIN;
-        if (!it->second->getWriteBuffer().empty())
+        std::map<int, Client*>::iterator it = _clients.find(_poll_fds[i].fd);
+
+        if(it != _clients.end() && !it->second->getWriteBuffer().empty())
             _poll_fds[i].events |= POLLOUT;
     }
 }

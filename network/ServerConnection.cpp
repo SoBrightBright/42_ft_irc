@@ -65,44 +65,47 @@ void Server::receiveData(int client_fd)
     Client* client = it->second;
 
     char buffer[1024];
-    ssize_t bytes_received = recv(client_fd, buffer, sizeof(buffer) - 1, 0);
+    ssize_t bytes_received = recv(client_fd, buffer, sizeof(buffer), 0);
     if (bytes_received < 0)
     {
         if (errno == EWOULDBLOCK || errno == EAGAIN)
             return;
-        markForDisconnection(client_fd);
+        markForDisconnection(client_fd, "Receive error");
         return;
     }
     if (bytes_received == 0)
     {
-        markForDisconnection(client_fd);
+        markForDisconnection(client_fd, "Client disconnected");
         return;
     }
 
     client->getReadBuffer().append(buffer, bytes_received);
     client->updateLastActivity();
 
-    while (client->hasCompleteLine())
+    while (client->getReadBuffer().size() > 8192 && !client->hasCompleteLine())
     {
-        std::string line = client->popLine();
-
-        if (!_parser.operate(*this, *client, line))
-        {
-            std::cerr << "Failed to parse message: " << line << std::endl;
-            continue;
-        }
+        markForDisconnection(client_fd, "Input buffer overflow");
+        return;
     }
 
-    updatePoll();
+    while (!isMarked(client_fd) && client->hasCompleteLine())
+    {
+        std::string line = client->popLine();
+        if (line.empty())
+            continue;
+
+        if (!_parser.operate(*this, *client, line))
+            std::cerr << "Failed to parse message: " << line << std::endl;
+    }
 }
 
 void Server::sendData(int client_fd)
 {
-    Client* client = _clients[client_fd];
-    if (!client)
+    std::map<int, Client*>::iterator it = _clients.find(client_fd);
+    if (it == _clients.end())
         return;
 
-    std::string& write_buffer = client->getWriteBuffer();
+    std::string& write_buffer = it->second->getWriteBuffer();
     if (write_buffer.empty())
         return;
 
@@ -111,23 +114,22 @@ void Server::sendData(int client_fd)
     {
         if (errno == EWOULDBLOCK || errno == EAGAIN)
             return;
-        markForDisconnection(client_fd);
+        markForDisconnection(client_fd, "Send error");
         return;
     }
-
     write_buffer.erase(0, bytes_sent);
-    updatePoll();
 }
 
-void Server::disconnectClient(int client_fd)
+void Server::disconnect(int client_fd, const std::string& reason)
 {
     std::map<int, Client*>::iterator it = _clients.find(client_fd);
-    if (it == _clients.end())
-        return;
-
-    removeClientFromAllChannels(*it->second, "Connection closed");
+    if (it != _clients.end())
+    {
+        removeClientFromAllChannels(*it->second, reason);
+        delete it->second;
+        _clients.erase(it);
+    }
     
-    close(client_fd);
     for (std::vector<pollfd>::iterator poll_it = _poll_fds.begin(); poll_it != _poll_fds.end(); ++poll_it)
     {
         if (poll_it->fd == client_fd)
@@ -136,8 +138,7 @@ void Server::disconnectClient(int client_fd)
             break;
         }
     }
-    delete it->second;
-    _clients.erase(it);
+    close(client_fd);
 
-    std::cout << "Client disconnected: FD " << client_fd << std::endl;
+    std::cout << "Client disconnected: FD " << client_fd << " (" << reason << ")" << std::endl;
 }
