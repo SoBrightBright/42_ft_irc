@@ -187,7 +187,10 @@ void	Channel::handleJoin(Client &user, const std::string &key)
 		return ;
 	}
 
+	bool isFirst = _members.empty();
 	addMember(user);
+	if (isFirst)
+		addOperator(user);
 	sendToAll(makeCommand(user, "JOIN", _name));
 	if (_topic.size() == 0)
 		sendToOne(user, makeReply(Numeric::RPL_NOTOPIC, user.getNickname(), _name + " :No topic is set"));
@@ -196,9 +199,11 @@ void	Channel::handleJoin(Client &user, const std::string &key)
 	std::string users;	
 	for (size_t i = 0; i < _members.size(); i++)
 	{
+		if (i > 0)
+			users += " ";
+		if (isOperator(*_members[i]))
+			users += "@";
 		users += _members[i]->getNickname();
-		if (i + 1 < _members.size())
-			users += ", ";
 	}
 	sendToOne(user, makeReply(Numeric::RPL_NAMREPLY, user.getNickname(), "= " + _name + " :" + users));
 	sendToOne(user, makeReply(Numeric::RPL_ENDOFNAMES, user.getNickname(), _name + " :End of /NAMES list"));
@@ -407,12 +412,17 @@ void	Channel::handleModeOperator(bool enable, Client &target, Client &user)
 {
 	if (!isMember(target))
 	{
-		sendToOne(target, makeReply(Numeric::ERR_USERNOTINCHANNEL, target.getNickname(), _name + " :They aren't on that channel"));
+		sendToOne(user, makeReply(Numeric::ERR_USERNOTINCHANNEL, user.getNickname(), target.getNickname() + _name + " :They aren't on that channel"));
+		return ;
+	}
+	if (!isOperator(user))
+	{
+		sendToOne(user, makeReply(Numeric::ERR_CHANOPRIVSNEEDED, user.getNickname(), _name + " :You're not channel operator"));
 		return ;
 	}
 	setModeOperator(enable, target);
 	std::string modeStr = enable ? "+o" : "-o";
-	sendToAll(makeCommand(user, modeStr, _name + " " + target.getNickname()));
+	sendToAll(makeCommand(user, "MODE", _name + " " + modeStr + " " + target.getNickname()));
 }
 
 void	Channel::handleChannelPrivmsg(Client &sender, const std::string &message)
