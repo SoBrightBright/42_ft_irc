@@ -94,6 +94,13 @@ void	Mode::execute(Server &server, Client &client, const Message &msg)
 
 		if (c == 'i' || c == 't' || c == 'k' || c == 'l')
 		{
+			bool needsParam = ((c == 'k' || c == 'l') && enable);
+			if (needsParam && paramIndex >= modeParams.size())
+			{
+				client.sendReply(makeReply(Numeric::ERR_NEEDMOREPARAMS, targetName, "MODE :Not enough parameters"));
+				continue ;
+			}
+
 			char sign = enable ? '+' : '-';
 			if (sign != lastAppliedSign)
 			{
@@ -101,24 +108,11 @@ void	Mode::execute(Server &server, Client &client, const Message &msg)
 				lastAppliedSign = sign;
 			}
 			filteredModes += c;
-	
-			if (c == 'k' || c == 'l')
-			{
-				if (enable)
-				{
-					if (paramIndex >= modeParams.size())
-					{
-						client.sendReply(makeReply(Numeric::ERR_NEEDMOREPARAMS, targetName, "MODE :Not enough parameters"));
-						continue ;
-					}
-					filteredParams.push_back(modeParams[paramIndex++]);
-				}
-			}
+			if (needsParam)
+				filteredParams.push_back(modeParams[paramIndex++]);
 		}
 		else
-		{
 			client.sendReply(makeReply(Numeric::ERR_UNKNOWNMODE, targetName, std::string(1, c) + " :is unknown mode char to me for " + channel->getName()));
-		}
 	}
 	
 	if (!filteredModes.empty())

@@ -171,26 +171,35 @@ void	Channel::setModeUserLimit(bool enable, int userLimit) // l
 
 void	Channel::handleJoin(Client &user, const std::string &key)
 {
+	// 비밀번호 확인
 	if (!_key.empty() && !checkKey(key))
 	{
 		sendToOne(user, makeReply(Numeric::ERR_BADCHANNELKEY, user.getNickname(), _name + " :Cannot join channel (+k)"));
 		return ;
 	}
+	// 초대 여부 확인
 	if (_inviteOnly && !isInvited(user))
 	{
 		sendToOne(user, makeReply(Numeric::ERR_INVITEONLYCHAN, user.getNickname(), _name + " :Cannot join channel (+i)"));
 		return ;
 	}
+	// 참여 인원 제한 확인
 	if (isFull())
 	{
 		sendToOne(user, makeReply(Numeric::ERR_CHANNELISFULL, user.getNickname(), _name + " :Cannot join channel (+l)"));
 		return ;
 	}
 
+	// 한 번 사용된 초대가 재사용되지 않게끔 삭제
+	_invitedUserNicks.erase(std::remove(_invitedUserNicks.begin(), _invitedUserNicks.end(), user.getNickname()), _invitedUserNicks.end());
+
+	// 채널 생성자에게 operator 부여
 	bool isFirst = _members.empty();
 	addMember(user);
 	if (isFirst)
 		addOperator(user);
+	
+	// 메시지 출력
 	sendToAll(makeCommand(user, "JOIN", _name));
 	if (_topic.size() == 0)
 		sendToOne(user, makeReply(Numeric::RPL_NOTOPIC, user.getNickname(), _name + " :No topic is set"));
@@ -252,9 +261,8 @@ void	Channel::handleKick(Client &kickingUser, Client &kickedUser, const std::str
 	else
 		reason = kickingUser.getNickname();
 
+	sendToAll(makeCommand(kickingUser, "KICK", _name + " " + kickedUser.getNickname()) + " :" + reason);
 	removeMember(kickedUser);
-
-	sendToAll(makeCommand(kickingUser, "KICK", _name + " " + kickedUser.getNickname()));
 }
 
 void	Channel::handleTopic(Client &user, const std::string &topic, bool hasTopicParam)
@@ -375,13 +383,15 @@ void	Channel::handleMode(Client &user, const std::string &modes, const std::vect
 			case 'k':
 				if (enable)
 				{
+					if (paramIndex >= modeParams.size())
+						break ;
+					const std::string &newKey = modeParams[paramIndex++];
 					if (!_key.empty())
 					{
 						sendToOne(user, makeReply(Numeric::ERR_KEYSET, user.getNickname(), _name + " :Channel key already set"));
 						break ;
 					}
-					if (paramIndex < modeParams.size())
-						setModeKey(true, modeParams[paramIndex++]);
+					setModeKey(true, newKey);
 				}
 				else
 					setModeKey(false, "");
@@ -412,7 +422,7 @@ void	Channel::handleModeOperator(bool enable, Client &target, Client &user)
 {
 	if (!isMember(target))
 	{
-		sendToOne(user, makeReply(Numeric::ERR_USERNOTINCHANNEL, user.getNickname(), target.getNickname() + _name + " :They aren't on that channel"));
+		sendToOne(user, makeReply(Numeric::ERR_USERNOTINCHANNEL, user.getNickname(), target.getNickname() + " " + _name + " :They aren't on that channel"));
 		return ;
 	}
 	if (!isOperator(user))
