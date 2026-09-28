@@ -56,7 +56,7 @@ class Server
         void    run();
 
         std::string getName();
-        bool    isNicknameTaken(const std::string& nickname);
+        bool    isNicknameTaken(const std::string& nickname, const Client *self);
         bool    checkPassword(const std::string& password) const;
         void    disconnectClient(Client&, const std::string& reason);
 

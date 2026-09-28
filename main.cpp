@@ -1,5 +1,6 @@
 #include "./network/Server.hpp"
 #include <iostream>
+#include <string>
 #include <cstdlib>
 #include <csignal>
 
@@ -17,16 +18,22 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    int port = std::atoi(argv[1]);
+    char *end;
+    long port = std::strtol(argv[1], &end, 10);
     std::string password = argv[2];
 
-    if (port <= 0 || port > 65535) {
+    if (password.empty()) {
+        std::cerr << "Error: Password must not be empty" << std::endl;
+        return 1;
+    }
+
+    if (*end != '\0' || port <= 0 || port > 65535) {
         std::cerr << "Error: Invalid port number" << std::endl;
         return 1;
     }
 
     try {
-        Server irc_server(port, password); // 서버 객체 생성
+        Server irc_server(static_cast<int>(port), password); // 서버 객체 생성
         irc_server.init(); // 소켓 셋업, 논블로킹
         irc_server.run();  // poll() 무한 루프
         std::cout << "IRC Server stopped." << std::endl;
