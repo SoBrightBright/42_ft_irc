@@ -1,6 +1,7 @@
 #ifndef SERVER_HPP
 #define SERVER_HPP
 
+#include <iostream>
 #include <string>
 #include <vector>
 #include <map>
@@ -44,6 +45,8 @@ class Server
         void    removeClientFromAllChannels(Client&, const std::string& reason);
 
         bool    isMarked(int client_fd) const;
+        void    markForDisconnection(int client_fd, const std::string& reason);
+        void    removeChannelIfEmpty(const std::string &channelName);
 
     public:
         Server(int port, const std::string& password);
@@ -60,11 +63,7 @@ class Server
         Channel* findChannel(const std::string &name); // name으로 Channel*을 찾아서 반환, 없으면 NULL 반환
 		Channel* findOrCreateChannel(const std::string &name); // JOIN에서 사용, name으로 찾아보고 없으면 name이란 채널을 새로 만듦
 		Channel* deleteChannel(const std::string &name); // name으로 찾아서 삭제, 없으면 NULL 반환
-
         Client* findClientByNickname(const std::string &nickname); // 지금까지 몇 번 말씀드렸던 것!! nickname으로 Client * 찾아서 반환. 없으면 NULL 반환
-
-        void    removeChannelIfEmpty(const std::string &channelName);
-        void    markForDisconnection(int client_fd, const std::string& reason);        
     };
 
 #endif

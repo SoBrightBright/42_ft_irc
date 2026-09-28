@@ -1,5 +1,4 @@
 #include "Server.hpp"
-#include <iostream>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <fcntl.h>
@@ -28,7 +27,7 @@ Server::~Server()
 
 void Server::init()
 {
-    _server_fd = socket(AF_INET, SOCK_STREAM, 0);
+    _server_fd = socket(AF_INET, SOCK_STREAM, 0); //소켓 통신, IPv4 + TCP
     if (_server_fd < 0)
         throw std::runtime_error("Socket creation failed");
 
@@ -36,7 +35,7 @@ void Server::init()
     if (setsockopt(_server_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0)
         throw std::runtime_error("setsockept failed");
 
-    if (fcntl(_server_fd, F_SETFL, O_NONBLOCK) < 0)
+    if (fcntl(_server_fd, F_SETFL, O_NONBLOCK) < 0) //논블로킹
         throw std::runtime_error("fcntl failed");
 
     struct sockaddr_in server_addr;
@@ -46,7 +45,7 @@ void Server::init()
 
     if (bind(_server_fd, (struct sockaddr*)&server_addr, sizeof(server_addr)) < 0)
         throw std::runtime_error("Bind failed");
-    if (listen(_server_fd, SOMAXCONN) < 0)
+    if (listen(_server_fd, SOMAXCONN) < 0) // 클라이언트 요청 받는 상태
         throw std::runtime_error("Listen failed");
 
     struct pollfd server_pollfd;

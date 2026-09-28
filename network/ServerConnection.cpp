@@ -115,26 +115,3 @@ void Server::sendData(int client_fd)
     }
     write_buffer.erase(0, bytes_sent);
 }
-
-void Server::disconnect(int client_fd, const std::string& reason)
-{
-    std::map<int, Client*>::iterator it = _clients.find(client_fd);
-    if (it != _clients.end())
-    {
-        removeClientFromAllChannels(*it->second, reason);
-        delete it->second;
-        _clients.erase(it);
-    }
-    
-    for (std::vector<pollfd>::iterator poll_it = _poll_fds.begin(); poll_it != _poll_fds.end(); ++poll_it)
-    {
-        if (poll_it->fd == client_fd)
-        {
-            _poll_fds.erase(poll_it);
-            break;
-        }
-    }
-    close(client_fd);
-
-    std::cout << "Client disconnected: FD " << client_fd << " (" << reason << ")" << std::endl;
-}
