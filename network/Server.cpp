@@ -7,13 +7,6 @@
 #include <cerrno>
 #include <stdexcept>
 
-static volatile std::sig_atomic_t g_running = 1;
-static void handleSignal(int sig)
-{
-    (void)sig;
-    g_running = 0;
-}
-
 Server::Server(int port, const std::string& password)
     : _port(port), _server_fd(-1), _password(password) {}
 
@@ -65,10 +58,6 @@ void Server::init()
 
 void Server::run()
 {
-    signal(SIGINT, handleSignal);
-    signal(SIGQUIT, handleSignal);
-    signal(SIGPIPE, SIG_IGN);
-
     std::cout << "IRC Server started on port " << _port << std::endl;
 
     while (!g_stop)
@@ -76,11 +65,7 @@ void Server::run()
         refreshPollEvents();
         int ready = poll(&_poll_fds[0], _poll_fds.size(), -1);
         if (ready < 0)
-        {
-            if (!g_running)
-                break;
             continue;
-        }
 
         size_t count = _poll_fds.size();
         for (size_t i = 0; i < count; ++i)

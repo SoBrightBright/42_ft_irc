@@ -23,22 +23,6 @@ bool Server::checkPassword(const std::string& password) const
 
 void Server::disconnectClient(Client& client, const std::string& reason)
 {
-    if (client.isRegistered() == false)
-    {
-        for (std::map<int, Client*>::iterator it = _clients.begin(); it != _clients.end(); ++it)
-        {
-            if (it->second == &client)
-            {
-                client.sendReply(reason);
-                delete it->second;
-                _clients.erase(it);
-                break;
-            }
-        }
-        markForDisconnection(client.getFd(), reason);
-        return;
-    }
-    removeClientFromAllChannels(client, reason);
     markForDisconnection(client.getFd(), reason);
 }
 

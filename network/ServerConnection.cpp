@@ -68,8 +68,6 @@ void Server::receiveData(int client_fd)
     ssize_t bytes_received = recv(client_fd, buffer, sizeof(buffer), 0);
     if (bytes_received < 0)
     {
-        if (errno == EWOULDBLOCK || errno == EAGAIN)
-            return;
         markForDisconnection(client_fd, "Receive error");
         return;
     }
@@ -82,7 +80,7 @@ void Server::receiveData(int client_fd)
     client->getReadBuffer().append(buffer, bytes_received);
     client->updateLastActivity();
 
-    while (client->getReadBuffer().size() > 8192 && !client->hasCompleteLine())
+    if (client->getReadBuffer().size() > 8192 && !client->hasCompleteLine())
     {
         markForDisconnection(client_fd, "Input buffer overflow");
         return;
@@ -112,8 +110,6 @@ void Server::sendData(int client_fd)
     ssize_t bytes_sent = send(client_fd, write_buffer.c_str(), write_buffer.size(), 0);
     if (bytes_sent < 0)
     {
-        if (errno == EWOULDBLOCK || errno == EAGAIN)
-            return;
         markForDisconnection(client_fd, "Send error");
         return;
     }
