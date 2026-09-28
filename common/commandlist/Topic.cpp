@@ -25,14 +25,14 @@ void	Topic::execute(Server &server, Client &client, const Message &msg)
 
 	if (params.size() < 1)
 	{
-		client.getWriteBuffer() += makeReply(Numeric::ERR_NEEDMOREPARAMS, target, "TOPIC :Not enough parameters");
+		client.sendReply(makeReply(Numeric::ERR_NEEDMOREPARAMS, target, "TOPIC :Not enough parameters"));
 		return ;
 	}
 
 	Channel *channel = server.findChannel(params[0]);
 	if (!channel)
 	{
-		client.getWriteBuffer() += makeReply(Numeric::ERR_NOSUCHCHANNEL, target, params[0] + " :No such channel");
+		client.sendReply(makeReply(Numeric::ERR_NOSUCHCHANNEL, target, params[0] + " :No such channel"));
 		return ;
 	}
 

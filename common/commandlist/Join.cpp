@@ -24,7 +24,7 @@ void	Join::execute(Server &server, Client &client, const Message &msg)
 	
 	if (params.size() < 1)
 	{
-		client.getWriteBuffer() += makeReply(Numeric::ERR_NEEDMOREPARAMS, target, "JOIN :Not enough parameters");
+		client.sendReply(makeReply(Numeric::ERR_NEEDMOREPARAMS, target, "JOIN :Not enough parameters"));
 		return ;
 	}
 
@@ -38,7 +38,7 @@ void	Join::execute(Server &server, Client &client, const Message &msg)
 	// 채널 이름 형식 검증
 	if (params[0].empty() || (params[0][0] != '#' && params[0][0] != '&'))
 	{
-		client.getWriteBuffer() += makeReply(Numeric::ERR_NOSUCHCHANNEL, target, params[0] + " :No such channel");
+		client.sendReply(makeReply(Numeric::ERR_NOSUCHCHANNEL, target, params[0] + " :No such channel"));
 		return ;
 	}
 	

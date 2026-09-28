@@ -25,21 +25,21 @@ void	Invite::execute(Server &server, Client &client, const Message &msg)
 
 	if (params.size() < 2)
 	{
-		client.getWriteBuffer() += makeReply(Numeric::ERR_NEEDMOREPARAMS, target, "INVITE :Not enough parameters");
+		client.sendReply(makeReply(Numeric::ERR_NEEDMOREPARAMS, target, "INVITE :Not enough parameters"));
 		return ;
 	}
 
 	Client *targetClient = server.findClientByNickname(params[0]);
 	if (!targetClient)
 	{
-		client.getWriteBuffer() += makeReply(Numeric::ERR_NOSUCHNICK, target, params[0] + " :No such nick/channel");
+		client.sendReply(makeReply(Numeric::ERR_NOSUCHNICK, target, params[0] + " :No such nick/channel"));
 		return ;
 	}
 
 	Channel *channel = server.findChannel(params[1]);
 	if (!channel)
 	{
-		client.getWriteBuffer() += makeReply(Numeric::ERR_NOSUCHCHANNEL, target, params[1] + " :No such channel");
+		client.sendReply(makeReply(Numeric::ERR_NOSUCHCHANNEL, target, params[1] + " :No such channel"));
 		return ;
 	}
 

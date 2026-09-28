@@ -25,21 +25,21 @@ void	Kick::execute(Server &server, Client &client, const Message &msg)
 
 	if (params.size() < 2)
 	{
-		client.getWriteBuffer() += makeReply(Numeric::ERR_NEEDMOREPARAMS, target, "KICK :Not enough parameters");
+		client.sendReply(makeReply(Numeric::ERR_NEEDMOREPARAMS, target, "KICK :Not enough parameters"));
 		return ;
 	}
 
 	Channel *channel = server.findChannel(params[0]);
 	if (!channel)
 	{
-		client.getWriteBuffer() += makeReply(Numeric::ERR_NOSUCHCHANNEL, target, params[0] + " :No such channel");
+		client.sendReply(makeReply(Numeric::ERR_NOSUCHCHANNEL, target, params[0] + " :No such channel"));
 		return ;
 	}
 
 	Client *targetClient = server.findClientByNickname(params[1]);
 	if (!targetClient)
 	{
-		client.getWriteBuffer() += makeReply(Numeric::ERR_USERNOTINCHANNEL, target, params[1] + " " + params[0] + " :They aren't on that channel");
+		client.sendReply(makeReply(Numeric::ERR_USERNOTINCHANNEL, target, params[1] + " " + params[0] + " :They aren't on that channel"));
 		return ;
 	}
 

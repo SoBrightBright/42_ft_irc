@@ -427,13 +427,13 @@ void	Channel::handleChannelPrivmsg(Client &sender, const std::string &message)
 
 void	Channel::sendToOne(Client &targetUser, const std::string &message) const
 {
-	targetUser.getWriteBuffer() += message + "\r\n";
+	targetUser.sendReply(message);
 }
 
 void	Channel::sendToAll(const std::string &message) const
 {
 	for (size_t i = 0; i < _members.size(); i++)
-		_members[i]->getWriteBuffer() += message + "\r\n";
+		_members[i]->sendReply(message);
 }
 
 void	Channel::sendToAllExcept(const Client &except, const std::string &message) const
@@ -441,6 +441,6 @@ void	Channel::sendToAllExcept(const Client &except, const std::string &message) 
 	for (size_t i = 0; i < _members.size(); i++)
 	{
 		if (_members[i] != &except)
-			_members[i]->getWriteBuffer() += message + "\r\n";
+			_members[i]->sendReply(message);
 	}
 }

@@ -25,7 +25,7 @@ void	Privmsg::execute(Server &server, Client &client, const Message &msg)
 
 	if (params.size() < 1)
 	{
-		client.getWriteBuffer() += makeReply(Numeric::ERR_NORECIPIENT, target, ":No recipient given (PRIVMSG)");
+		client.sendReply(makeReply(Numeric::ERR_NORECIPIENT, target, ":No recipient given (PRIVMSG)"));
 		return ;
 	}
 
@@ -38,7 +38,7 @@ void	Privmsg::execute(Server &server, Client &client, const Message &msg)
 		Client *recipient = server.findClientByNickname(params[0]);
 		if (!recipient)
 		{
-			client.getWriteBuffer() += makeReply(Numeric::ERR_NOSUCHNICK, target, params[0] + " :No such nick/channel");
+			client.sendReply(makeReply(Numeric::ERR_NOSUCHNICK, target, params[0] + " :No such nick/channel"));
 			return ;			
 		}
 		handlePersonalPrivmsg(client, *recipient, comment);

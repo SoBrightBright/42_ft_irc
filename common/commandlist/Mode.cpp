@@ -25,14 +25,14 @@ void	Mode::execute(Server &server, Client &client, const Message &msg)
 
 	if (params.size() < 1)
 	{
-		client.getWriteBuffer() += makeReply(Numeric::ERR_NEEDMOREPARAMS, targetName, "MODE :Not enough parameters");
+		client.sendReply(makeReply(Numeric::ERR_NEEDMOREPARAMS, targetName, "MODE :Not enough parameters"));
 		return ;
 	}
 
 	Channel *channel = server.findChannel(params[0]);
 	if (!channel)
 	{
-		client.getWriteBuffer() += makeReply(Numeric::ERR_NOSUCHCHANNEL, targetName, params[0] + " :No such channel");
+		client.sendReply(makeReply(Numeric::ERR_NOSUCHCHANNEL, targetName, params[0] + " :No such channel"));
 		return ;
 	}
 
@@ -72,7 +72,7 @@ void	Mode::execute(Server &server, Client &client, const Message &msg)
 		{
 			if (paramIndex >= modeParams.size())
 			{
-				client.getWriteBuffer() += makeReply(Numeric::ERR_NEEDMOREPARAMS, targetName, "MODE :Not enough parameters");
+				client.sendReply(makeReply(Numeric::ERR_NEEDMOREPARAMS, targetName, "MODE :Not enough parameters"));
 				continue ;
 			}
 			std::string nickname = modeParams[paramIndex++];
@@ -80,7 +80,7 @@ void	Mode::execute(Server &server, Client &client, const Message &msg)
 			if (target)
 				channel->handleModeOperator(enable, *target, client);
 			else
-				client.getWriteBuffer() += makeReply(Numeric::ERR_USERNOTINCHANNEL, targetName, nickname + " " + channel->getName() + " :They aren't on that channel");
+				client.sendReply(makeReply(Numeric::ERR_USERNOTINCHANNEL, targetName, nickname + " " + channel->getName() + " :They aren't on that channel"));
 			continue ;
 		}
 
@@ -102,7 +102,7 @@ void	Mode::execute(Server &server, Client &client, const Message &msg)
 				{
 					if (paramIndex >= modeParams.size())
 					{
-						client.getWriteBuffer() += makeReply(Numeric::ERR_NEEDMOREPARAMS, targetName, "MODE :Not enough parameters");
+						client.sendReply(makeReply(Numeric::ERR_NEEDMOREPARAMS, targetName, "MODE :Not enough parameters"));
 						continue ;
 					}
 					filteredParams.push_back(modeParams[paramIndex++]);
@@ -111,7 +111,7 @@ void	Mode::execute(Server &server, Client &client, const Message &msg)
 		}
 		else
 		{
-			client.getWriteBuffer() += makeReply(Numeric::ERR_UNKNOWNMODE, targetName, std::string(1, c) + " :is unknown mode char to me for " + channel->getName());
+			client.sendReply(makeReply(Numeric::ERR_UNKNOWNMODE, targetName, std::string(1, c) + " :is unknown mode char to me for " + channel->getName()));
 		}
 	}
 	
