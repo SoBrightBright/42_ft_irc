@@ -31,7 +31,7 @@ void	Pass::execute(Server &server, Client &client, const Message &msg) {
 	
 	if (!server.checkPassword(params[0])) {
 			client.sendReply(IrcReply::formatReply(IrcNumeric::ERR_PASSWDMISMATCH,
-							IrcReply::targetname(client), "You may not reregister"));
+							IrcReply::targetname(client), "Password Incorrect"));
 		return;	
 	}
 

@@ -17,7 +17,7 @@
 		// NICK
 		const std::string	ERR_NONICKNAMEGIVEN		= "431";
 		const std::string	ERR_ERRONEUSNICKNAME	= "432";
-		const std::string	ERR_ERRNICKNAMEINUSE	= "433";
+		const std::string	ERR_NICKNAMEINUSE		= "433";
 
 		// USER, PASS
 		const std::string	ERR_ALREADYREGISTERED	= "462";

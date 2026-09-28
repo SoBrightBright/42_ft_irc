@@ -61,7 +61,7 @@ void	Nick::execute(Server &server, Client &client, const Message &msg) {
 	}
 
 	if (server.isNicknameTaken(newNickname)) {
-		client.sendReply(IrcReply::formatReplyWithParameter(IrcNumeric::ERR_ERRNICKNAMEINUSE,
+		client.sendReply(IrcReply::formatReplyWithParameter(IrcNumeric::ERR_NICKNAMEINUSE,
 								 			target, newNickname, "Nickname is already in use"));
 		return;
 	}
