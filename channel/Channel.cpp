@@ -339,6 +339,30 @@ std::string	Channel::buildModeString() const
 	return modes + params;
 }
 
+static void appendApplied(std::string &applied, char &lastSign, bool enable, char flag)
+{
+	char sign = enable ? '+' : '-';
+	if (sign != lastSign)
+	{
+		applied += sign;
+		lastSign = sign;
+	}
+	applied += flag;
+}
+
+static bool parseLimit(const std::string &str, int &out)
+{
+	if (str.empty() || str.size() > 9)
+		return false;
+	for (size_t i = 0; i < str.size(); i++)
+	{
+		if (str[i] < '0' || str[i] > '9')
+			return false;
+	}
+	out = std::atoi(str.c_str());
+	return out > 0;
+}
+
 void	Channel::handleMode(Client &user, const std::string &modes, const std::vector<std::string> &modeParams)
 {
 	if (modes.empty())
@@ -352,8 +376,11 @@ void	Channel::handleMode(Client &user, const std::string &modes, const std::vect
 		return ;
 	}
 
-	bool	enable = false;
-	size_t	paramIndex = 0;
+	bool		enable = true;
+	size_t		paramIndex = 0;
+	std::string applied;
+	std::string appliedArgs;
+	char		lastSign = 0;
 
 	for (size_t i = 0; i < modes.size(); i++)
 	{
@@ -373,11 +400,19 @@ void	Channel::handleMode(Client &user, const std::string &modes, const std::vect
 		switch (mode)
 		{
 			case 'i':
-				setModeInviteOnly(enable);
+				if (_inviteOnly != enable)
+				{
+					setModeInviteOnly(enable);
+					appendApplied(applied, lastSign, enable, 'i');
+				}
 				break ;
 
 			case 't':
-				setModeTopicRestriction(enable);
+				if (_topicByOpOnly != enable)
+				{
+					setModeTopicRestriction(enable);
+					appendApplied(applied, lastSign, enable, 't');
+				}
 				break ;
 
 			case 'k':
@@ -392,16 +427,34 @@ void	Channel::handleMode(Client &user, const std::string &modes, const std::vect
 						break ;
 					}
 					setModeKey(true, newKey);
+					appendApplied(applied, lastSign, true, 'k');
+					appliedArgs += " " + newKey;
 				}
-				else
+				else if (!_key.empty())
+				{
 					setModeKey(false, "");
+					appendApplied(applied, lastSign, false, 'k');
+				}
 				break ;
 
 			case 'l':
-				if (enable && paramIndex < modeParams.size())
-					setModeUserLimit(true, std::atoi(modeParams[paramIndex++].c_str()));
-				else
+				if (enable)
+				{
+					if (paramIndex >= modeParams.size())
+						break ;
+					const std::string &raw = modeParams[paramIndex++];
+					int limit = 0;
+					if (!parseLimit(raw, limit))
+						break ;
+					setModeUserLimit(true, limit);
+					appendApplied(applied, lastSign, true, 'l');
+					appliedArgs += " " + raw;
+				}
+				else if (_userLimit > 0)
+				{
 					setModeUserLimit(false, 0);
+					appendApplied(applied, lastSign, false, 'l');
+				}
 				break ;
 
 			default:
@@ -409,13 +462,8 @@ void	Channel::handleMode(Client &user, const std::string &modes, const std::vect
 				break ;
 		}
 	}
-	if (!modes.empty() && modes != "+" && modes != "-")
-	{
-		std::string paramsStr;
-		for (size_t i = 0; i < modeParams.size(); i++)
-			paramsStr += " " + modeParams[i];
-		sendToAll(makeCommand(user, "MODE", _name + " " + modes + paramsStr));
-	}
+	if (!applied.empty())
+		sendToAll(makeCommand(user, "MODE", _name + " " + applied + appliedArgs));
 }
 
 void	Channel::handleModeOperator(bool enable, Client &target, Client &user)
@@ -430,6 +478,8 @@ void	Channel::handleModeOperator(bool enable, Client &target, Client &user)
 		sendToOne(user, makeReply(Numeric::ERR_CHANOPRIVSNEEDED, user.getNickname(), _name + " :You're not channel operator"));
 		return ;
 	}
+	if (isOperator(target) == enable)
+		return ;
 	setModeOperator(enable, target);
 	std::string modeStr = enable ? "+o" : "-o";
 	sendToAll(makeCommand(user, "MODE", _name + " " + modeStr + " " + target.getNickname()));

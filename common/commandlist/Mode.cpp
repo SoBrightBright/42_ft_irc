@@ -52,6 +52,12 @@ void	Mode::execute(Server &server, Client &client, const Message &msg)
 		return ;
 	}
 
+	if (!modes.empty() && modes[0] != '+' && modes[0] != '-')
+	{
+		client.sendReply(makeReply(Numeric::ERR_UNKNOWNMODE, targetName, std::string(1, modes[0]) + " :is unknown mode char to me for " + channel->getName()));
+		return ;
+	}
+	
 	// 'o'는 server에 접근해야 하기 때문에 channel 클래스 안이 아닌 여기서 처리
 
 	size_t paramIndex = 0;

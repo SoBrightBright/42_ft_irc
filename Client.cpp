@@ -101,7 +101,7 @@ void Client::tryCompleteRegistration()
 	{
         _is_registered = true;
 		sendReply(IrcReply::formatReply(IrcNumeric::RPL_WELCOME, getNickname(),
-            "Welcome to the ft_irc Network, " + getNickname() + "!" + getUsername() + "@localhost"));
+            "Welcome to the ft_irc Network, " + getNickname() + "!" + getUsername() + "@" + getIp()));
 		sendReply(IrcReply::formatReply(IrcNumeric::RPL_YOURHOST, getNickname(),
             "Your host is ircserv, running version 1.0"));
     }
