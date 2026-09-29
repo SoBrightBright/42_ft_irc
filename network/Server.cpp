@@ -81,10 +81,19 @@ void Server::run()
                 markForDisconnection(p.fd, "Connection error");
                 continue;
             }
-            if (p.revents & (POLLIN | POLLHUP))
-                receiveData(p.fd);
-            if ((p.revents & POLLOUT) && !isMarked(p.fd))
-                sendData(p.fd);
+
+            try
+            {
+                if (p.revents & (POLLIN | POLLHUP))
+                    receiveData(p.fd);
+                if ((p.revents & POLLOUT) && !isMarked(p.fd))
+                    sendData(p.fd);
+            }
+            catch (const std::exception &e)
+            {
+                std::cerr << "Client " << p.fd << " error: " << e.what() << std::endl;
+                markForDisconnection(p.fd, "Internal error");
+            }
         }
         cleanupDisconnected();
         checkIdleClients();
