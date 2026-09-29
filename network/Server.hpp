@@ -45,6 +45,8 @@ class Server
         void    receiveData(int client_fd);
         void    sendData(int client_fd);
         void    refreshPollEvents();
+        void    checkIdleClients();
+
 
         void    cleanupDisconnected();
         void    disconnect(int client_fd, const std::string& reason);

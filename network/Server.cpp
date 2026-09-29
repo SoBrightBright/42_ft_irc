@@ -87,6 +87,16 @@ void Server::run()
                 sendData(p.fd);
         }
         cleanupDisconnected();
+        checkIdleClients();
+    }
+}
+
+void Server::checkIdleClients()
+{
+    for (std::map<int, Client*>::iterator it = _clients.begin(); it != _clients.end(); ++it)
+    {
+        if (it->second->getIdleTime() > TIMEOUT_SECONDS)
+            markForDisconnection(it->first, "Ping timeout");
     }
 }
 
