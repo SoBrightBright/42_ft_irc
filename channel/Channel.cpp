@@ -56,6 +56,11 @@ const std::string	&Channel::getTopic() const
 	return _topic;
 }
 
+const std::vector<Client *> &Channel::getMembers() const
+{
+	return _members;
+}
+
 bool	Channel::checkKey(const std::string &key) const
 {
 	return (_key == key);
@@ -522,9 +527,4 @@ void	Channel::sendToAllExcept(const Client &except, const std::string &message) 
 		if (_members[i] != &except)
 			_members[i]->sendReply(message);
 	}
-}
-
-void	Channel::broadcastToAllExcept(Client &except, const std::string message)
-{
-	sendToAllExcept(except, message);
 }

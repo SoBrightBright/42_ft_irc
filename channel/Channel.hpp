@@ -74,13 +74,12 @@ class Channel
 		// getters
 		const std::string 	&getName() const;
 		const std::string	&getTopic() const;
+		const std::vector<Client *> &getMembers() const;
 
 		// checkers
 		bool				isMember(const Client &client) const;
 		bool				isOperator(const Client &client) const;		
 		bool				isEmpty() const;
-
-		void				broadcastToAllExcept(Client &except, const std::string message);
 };
 
 #endif

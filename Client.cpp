@@ -1,7 +1,8 @@
 #include "Client.hpp"
-# include "channel/Channel.hpp"
-#include <string>
+#include "channel/Channel.hpp"
 #include <iostream>
+#include <string>
+#include <set>
 
 // Constructors and Destructors
 Client::Client(int fd):
@@ -123,15 +124,30 @@ void Client::tryCompleteRegistration()
 
 void Client::broadcastNickChange(const std::string &notice) {
 	sendReply(notice);
+
+	std::set<Client *> notified;
+	notified.insert(this);
+
 	for (std::map<std::string, Channel*>::const_iterator it = _joinedChannels.begin();
 		it != _joinedChannels.end(); ++it) {
-			it->second->broadcastToAllExcept(*this, notice);
+			const std::vector<Client *> &members = it->second->getMembers();
+			for (size_t idx = 0; idx < members.size(); ++idx) {
+				if (notified.insert(members[idx]).second)
+					members[idx]->sendReply(notice);
+			}
 	}
 }
 
 void Client::broadcastQuit(const std::string &notice) {
+	std::set<Client *> notified;
+	notified.insert(this);
+
 	for (std::map<std::string, Channel*>::const_iterator it = _joinedChannels.begin();
 		it != _joinedChannels.end(); ++it) {
-			it->second->broadcastToAllExcept(*this, notice);
+			const std::vector<Client *> &members = it->second->getMembers();
+			for (size_t idx = 0; idx < members.size(); ++idx) {
+				if (notified.insert(members[idx]).second)
+					members[idx]->sendReply(notice);
+			}
 	}
 }
