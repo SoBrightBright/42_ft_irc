@@ -37,6 +37,10 @@ static bool	isValidNickname(const std::string &newer) {
 	return true;
 }
 
+static std::string nickNotice(const std::string &old, const std::string &newer, const std::string &user) {
+	return (":" + old + "!" + user + "@localhost NICK :" + newer);
+}
+
 // execute 공통: parameter overcontain에 대해서 - 접근조차 없이 무시한다...
 // NICK <nickname> : 닉네임 설정/변경. 서버 내 중복 닉네임 체크 및 유효성 검사 후 적용
 void	Nick::execute(Server &server, Client &client, const Message &msg) {
@@ -52,7 +56,9 @@ void	Nick::execute(Server &server, Client &client, const Message &msg) {
 		return;
 	}
 	
-	const std::string &newNickname = params[0];
+	bool				wasRegistered = client.isRegistered();
+	const std::string	oldNickname = client.getNickname();
+	const std::string	&newNickname = params[0];
 		
 	if (!isValidNickname(newNickname)) {
 		client.sendReply(IrcReply::formatReplyWithParameter(IrcNumeric::ERR_ERRONEUSNICKNAME,
@@ -67,5 +73,14 @@ void	Nick::execute(Server &server, Client &client, const Message &msg) {
 	}
 
 	client.setNickname(newNickname);
-	client.tryCompleteRegistration();
+	
+	if (wasRegistered) {
+		if (oldNickname == newNickname)
+			return;
+	
+		std::string	notice = nickNotice(oldNickname, newNickname, client.getUsername());
+		client.broadcastNickChange(notice);
+	} else {
+		client.tryCompleteRegistration();
+	}
 }

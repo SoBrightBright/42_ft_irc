@@ -120,3 +120,18 @@ void Client::tryCompleteRegistration()
             "Your host is ircserv, running version 1.0"));
     }
 }
+
+void Client::broadcastNickChange(const std::string &notice) {
+	sendReply(notice);
+	for (std::map<std::string, Channel*>::const_iterator it = _joinedChannels.begin();
+		it != _joinedChannels.end(); ++it) {
+			it->second->broadcastToAllExcept(*this, notice);
+	}
+}
+
+void Client::broadcastQuit(const std::string &notice) {
+	for (std::map<std::string, Channel*>::const_iterator it = _joinedChannels.begin();
+		it != _joinedChannels.end(); ++it) {
+			it->second->broadcastToAllExcept(*this, notice);
+	}
+}

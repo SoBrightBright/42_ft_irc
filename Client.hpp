@@ -65,6 +65,9 @@ class Client
         void        updateLastActivity();
         long        getIdleTime() const;
         void        tryCompleteRegistration();
+
+        void        broadcastNickChange(const std::string &notice);
+        void        broadcastQuit(const std::string &notice);
 };
 
 
