@@ -30,8 +30,9 @@ void	Join::execute(Server &server, Client &client, const Message &msg)
 
 	if (params[0] == "0")
 	{
-		// TODO: 클라이언트가 속한 모든 채널에서 PART 처리
-		// 근데 이건 Client가 "내가 어느 채널들에 있는지" 목록을 가지고 있어야 가능함
+		const std::map<std::string, Channel*> joined = client.getJoinedChannels();
+		for (std::map<std::string, Channel*>::const_iterator it = joined.begin(); it != joined.end(); ++it)
+			it->second->handlePart(client, "");
 		return ;
 	}
 
@@ -54,6 +55,3 @@ void	Join::execute(Server &server, Client &client, const Message &msg)
 }
 
 // TODO: 멀티채널JOIN이 필요할까?
-
-// TODO:: notice about all commands their server receives which affect the channel
-// MODE, KICK, PART, QUIT and of course PRIVMSG/NOTICE

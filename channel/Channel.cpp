@@ -523,3 +523,8 @@ void	Channel::sendToAllExcept(const Client &except, const std::string &message) 
 			_members[i]->sendReply(message);
 	}
 }
+
+void	Channel::broadcastToAllExcept(Client &except, const std::string message)
+{
+	sendToAllExcept(except, message);
+}

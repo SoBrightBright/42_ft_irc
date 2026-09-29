@@ -29,10 +29,16 @@ void	Privmsg::execute(Server &server, Client &client, const Message &msg)
 		return ;
 	}
 
+	if (!msg.hasTrailing() || msg.getTrailing().empty())
+	{
+		client.sendReply(makeReply(Numeric::ERR_NOTEXTTOSEND, target, ":No text to send"));
+		return ;
+	}
+
+	std::string comment = msg.getTrailing();
+
 	Channel *channel = server.findChannel(params[0]);
-	std::string comment = "";
-	if (msg.hasTrailing())
-		comment = msg.getTrailing();
+	
 	if (!channel)
 	{
 		Client *recipient = server.findClientByNickname(params[0]);

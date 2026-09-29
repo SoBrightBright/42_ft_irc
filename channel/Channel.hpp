@@ -79,6 +79,8 @@ class Channel
 		bool				isMember(const Client &client) const;
 		bool				isOperator(const Client &client) const;		
 		bool				isEmpty() const;
+
+		void				broadcastToAllExcept(Client &except, const std::string message);
 };
 
 #endif
