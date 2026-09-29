@@ -27,50 +27,52 @@ extern volatile std::sig_atomic_t g_stop;
 
 class Server
 {
-    private:
-        int	                            _port;
-        int                             _server_fd;
-        std::string                     _password;
+	private:
+		int								_port;
+		int								_server_fd;
+		std::string						_password;
 
-        Parser                         _parser;
+		Parser							_parser;
 
-        std::vector<struct pollfd>      _poll_fds;
+		std::vector<struct pollfd>		_poll_fds;
 
-        std::map<int, Client*>          _clients;
-        std::map<std::string, Channel*> _channels; // string은 채널이름, Channel*은 채널의 포인터
+		std::map<int, Client*>			_clients;
+		std::map<std::string, Channel*>	_channels; // string은 채널이름, Channel*은 채널의 포인터
 
-        std::map<int, std::string>     _to_disconnected; // client_fd -> reason
+		std::map<int, std::string>		_to_disconnected; // client_fd -> reason
+		std::map<int, std::string>		_closing;
 
-        void    acceptNewClient();
-        void    receiveData(int client_fd);
-        void    sendData(int client_fd);
-        void    refreshPollEvents();
-        void    checkIdleClients();
+		void	acceptNewClient();
+		void	receiveData(int client_fd);
+		void	sendData(int client_fd);
+		void	refreshPollEvents();
+		void	checkIdleClients();
 
 
-        void    cleanupDisconnected();
-        void    disconnect(int client_fd, const std::string& reason);
-        void    removeClientFromAllChannels(Client&, const std::string& reason);
+		void    cleanupDisconnected();
+		void	disconnect(int client_fd, const std::string& reason);
+		void    removeClientFromAllChannels(Client&, const std::string& reason);
 
-        bool    isMarked(int client_fd) const;
-        void    markForDisconnection(int client_fd, const std::string& reason);
+		bool    isMarked(int client_fd) const;
+		void    markForDisconnection(int client_fd, const std::string& reason);
+		void	disconnectAfterFlush(Client &c, const std::string &reason);
 
-    public:
-        Server(int port, const std::string& password);
-        ~Server();
+	public:
+		Server(int port, const std::string& password);
+		~Server();
 
-        void    init(); 
-        void    run();
+		void    init(); 
+		void    run();
 
-        std::string getName();
-        bool    isNicknameTaken(const std::string& nickname, const Client *self);
-        bool    checkPassword(const std::string& password) const;
-        void    disconnectClient(Client&, const std::string& reason);
+		std::string getName();
+		bool    isNicknameTaken(const std::string& nickname, const Client *self);
+		bool    checkPassword(const std::string& password) const;
+		void    disconnectClient(Client&, const std::string& reason);
 
-        Channel* findChannel(const std::string &name); // name으로 Channel*을 찾아서 반환, 없으면 NULL 반환
+		Channel* findChannel(const std::string &name); // name으로 Channel*을 찾아서 반환, 없으면 NULL 반환
 		Channel* findOrCreateChannel(const std::string &name); // JOIN에서 사용, name으로 찾아보고 없으면 name이란 채널을 새로 만듦
 		void    deleteChannel(const std::string &name); // name으로 찾아서 삭제, 없으면 NULL 반환
-        Client* findClientByNickname(const std::string &nickname); // 지금까지 몇 번 말씀드렸던 것!! nickname으로 Client * 찾아서 반환. 없으면 NULL 반환
-    };
+		Client* findClientByNickname(const std::string &nickname); // 지금까지 몇 번 말씀드렸던 것!! nickname으로 Client * 찾아서 반환. 없으면 NULL 반환
+	};
 
 #endif

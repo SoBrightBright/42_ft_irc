@@ -57,3 +57,9 @@ void Server::markForDisconnection(int client_fd, const std::string& reason)
     if (_to_disconnected.find(client_fd) == _to_disconnected.end())
         _to_disconnected[client_fd] = reason;
 }
+
+void Server::disconnectAfterFlush(Client &c, const std::string &reason)
+{
+    c.sendReply("ERROR :Closing Link: " + c.getIp() + " (" + reason + ")");
+    _closing[c.getFd()] = reason;
+}

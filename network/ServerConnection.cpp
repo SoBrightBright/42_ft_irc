@@ -93,7 +93,7 @@ void Server::receiveData(int client_fd)
         return;
     }
 
-    while (!isMarked(client_fd) && client->hasCompleteLine())
+    while (!isMarked(client_fd) && client->hasCompleteLine() && !_closing.count(client_fd))
     {
         std::string line = client->popLine();
         if (line.empty())
@@ -121,4 +121,9 @@ void Server::sendData(int client_fd)
         return;
     }
     write_buffer.erase(0, bytes_sent);
+    if (write_buffer.empty() && _closing.count(client_fd))
+    {
+        markForDisconnection(client_fd, _closing[client_fd]);
+        _closing.erase(client_fd);
+    }
 }
