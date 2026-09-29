@@ -8,6 +8,12 @@
 #include <poll.h>
 #include <arpa/inet.h>
 #include <csignal>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <cerrno>
+#include <stdexcept>
 #include "../Client.hpp"
 #include "../channel/Channel.hpp"
 #include "../parse/Message.hpp"

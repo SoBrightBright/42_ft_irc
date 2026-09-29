@@ -1,10 +1,4 @@
 #include "Server.hpp"
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <fcntl.h>
-#include <unistd.h>
-#include <cerrno>
-#include <stdexcept>
 
 Server::Server(int port, const std::string& password)
     : _port(port), _server_fd(-1), _password(password) {}
@@ -62,9 +56,13 @@ void Server::run()
     while (!g_stop)
     {
         refreshPollEvents();
-        int ready = poll(&_poll_fds[0], _poll_fds.size(), -1);
+        int ready = poll(&_poll_fds[0], _poll_fds.size(), 1000);
         if (ready < 0)
-            continue;
+        {
+            if (errno == EINTR)
+                continue;
+            throw std::runtime_error("Poll failed");
+        }
 
         size_t count = _poll_fds.size();
         for (size_t i = 0; i < count; ++i)

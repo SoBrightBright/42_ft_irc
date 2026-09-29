@@ -106,13 +106,17 @@ bool	Channel::isEmpty() const
 void	Channel::addMember(Client &client)
 {
 	if (!isMember(client))
+	{
 		_members.push_back(&client);
+		client.addJoinedChannels(_name, this);
+	}
 }
 
 void	Channel::removeMember(Client &client)
 {
 	_members.erase(std::remove(_members.begin(), _members.end(), &client), _members.end());
 	removeOperator(client);
+	client.removeJoinedChannels(_name);
 }
 
 void	Channel::addOperator(Client &client)

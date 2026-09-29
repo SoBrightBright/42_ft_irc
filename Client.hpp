@@ -42,6 +42,7 @@ class Client
         std::string&    getReadBuffer();
         std::string&    getWriteBuffer();
         std::string     getRealname() const;
+        const std::map<std::string, Channel*>& getJoinedChannels();
 
         void        setIp(const std::string& ip);
         void        setNickname(const std::string& nickname);
@@ -49,6 +50,9 @@ class Client
         void        setRealname(const std::string& realname);
         void        setRegistered(bool status);
         void        setPasswordVerified(bool status);
+
+        void        addJoinedChannels(const std::string& name, Channel* channel);
+        void        removeJoinedChannels(const std::string& name);
 
         bool        hasCompleteLine() const;
         void        sendReply(const std::string& message);

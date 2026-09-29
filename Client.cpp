@@ -57,6 +57,8 @@ std::string& Client::getWriteBuffer() { return _write_buffer; }
 
 std::string Client::getRealname() const { return _realname; }
 
+const std::map<std::string, Channel*>& Client::getJoinedChannels() { return _joinedChannels; }
+
 // Setters
 void Client::setIp(const std::string& ip) { _ip = ip; }
 
@@ -69,6 +71,18 @@ void Client::setRealname(const std::string& realname) { _realname = realname; }
 void Client::setRegistered(bool status) { _is_registered = status; }
 
 void Client::setPasswordVerified(bool status) { _is_password_verified = status; }
+
+
+//JoinedChannels
+void Client::addJoinedChannels(const std::string& name, Channel* channel)
+{
+	_joinedChannels[name] = channel;
+}
+
+void Client::removeJoinedChannels(const std::string& name)
+{
+	_joinedChannels.erase(name);
+}
 
 // Other Methods
 void Client::sendReply(const std::string& message)
