@@ -112,6 +112,7 @@ void	Channel::addMember(Client &client)
 void	Channel::removeMember(Client &client)
 {
 	_members.erase(std::remove(_members.begin(), _members.end(), &client), _members.end());
+	removeOperator(client);
 }
 
 void	Channel::addOperator(Client &client)
@@ -171,6 +172,10 @@ void	Channel::setModeUserLimit(bool enable, int userLimit) // l
 
 void	Channel::handleJoin(Client &user, const std::string &key)
 {
+	// 이미 참가한 채널일 경우 조용히 무시 (명시되어 있지 않음)
+	if (isMember(user))
+		return ;
+
 	// 비밀번호 확인
 	if (!_key.empty() && !checkKey(key))
 	{
@@ -232,9 +237,9 @@ void	Channel::handlePart(Client &user, const std::string &message)
 	else
 		reason = user.getNickname();
 
-	removeMember(user);
-
 	sendToAll(makeCommand(user, "PART", _name + " :" + reason));
+	removeMember(user);
+	// 명시되어 있지 않으나 PART 된 사용자도 메시지를 받는 것이 자연스럽다고 판단
 }
 
 void	Channel::handleKick(Client &kickingUser, Client &kickedUser, const std::string &comment)
