@@ -29,6 +29,10 @@ void	Mode::execute(Server &server, Client &client, const Message &msg)
 		return ;
 	}
 
+	// irssi는 접속하자마자 사용자 모드 명령을 자동으로 보내는데, 우리 과제는 사용자 모드를 지원하지 않으므로 조용히 무시
+	if (params[0][0] != '#' && params[0][0] != '&')
+		return ;
+	
 	Channel *channel = server.findChannel(params[0]);
 	if (!channel)
 	{
