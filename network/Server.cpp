@@ -55,48 +55,55 @@ void Server::run()
 
     while (!g_stop)
     {
-        refreshPollEvents();
-        int ready = poll(&_poll_fds[0], _poll_fds.size(), 1000);
-        if (ready < 0)
+        try
         {
-            if (errno == EINTR)
-                continue;
-            throw std::runtime_error("Poll failed");
-        }
-
-        size_t count = _poll_fds.size();
-        for (size_t i = 0; i < count; ++i)
-        {
-            struct pollfd p = _poll_fds[i];
-            if (p.revents == 0)
-                continue;
-            if (p.fd == _server_fd)
+            refreshPollEvents();
+            int ready = poll(&_poll_fds[0], _poll_fds.size(), 1000);
+            if (ready < 0)
             {
-                if (p.revents & POLLIN)
-                    acceptNewClient();
-                continue;
-            }
-            if (p.revents & (POLLERR | POLLNVAL))
-            {
-                markForDisconnection(p.fd, "Connection error");
-                continue;
+                if (errno == EINTR)
+                    continue;
+                throw std::runtime_error("Poll failed");
             }
 
-            try
+            size_t count = _poll_fds.size();
+            for (size_t i = 0; i < count; ++i)
             {
-                if (p.revents & (POLLIN | POLLHUP))
-                    receiveData(p.fd);
-                if ((p.revents & POLLOUT) && !isMarked(p.fd))
-                    sendData(p.fd);
+                struct pollfd p = _poll_fds[i];
+                if (p.revents == 0)
+                    continue;
+                if (p.fd == _server_fd)
+                {
+                    if (p.revents & POLLIN)
+                        acceptNewClient();
+                    continue;
+                }
+                if (p.revents & (POLLERR | POLLNVAL))
+                {
+                    markForDisconnection(p.fd, "Connection error");
+                    continue;
+                }
+
+                try
+                {
+                    if (p.revents & (POLLIN | POLLHUP))
+                        receiveData(p.fd);
+                    if ((p.revents & POLLOUT) && !isMarked(p.fd))
+                        sendData(p.fd);
+                }
+                catch (const std::exception &e)
+                {
+                    std::cerr << "Client " << p.fd << " error: " << e.what() << std::endl;
+                    markForDisconnection(p.fd, "Internal error");
+                }
             }
-            catch (const std::exception &e)
-            {
-                std::cerr << "Client " << p.fd << " error: " << e.what() << std::endl;
-                markForDisconnection(p.fd, "Internal error");
-            }
+            cleanupDisconnected();
+            checkIdleClients();
         }
-        cleanupDisconnected();
-        checkIdleClients();
+        catch (const std::exception &e)
+        {
+            std::cerr << "Loop error: " << e.what() << std::endl;
+        }
     }
 }
 

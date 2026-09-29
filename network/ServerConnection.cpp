@@ -27,11 +27,7 @@ void Server::acceptNewClient()
     socklen_t client_len = sizeof(client_addr);
     int client_fd = accept(_server_fd, (struct sockaddr*)&client_addr, &client_len);
     if (client_fd < 0)
-    {
-        if (errno != EWOULDBLOCK && errno != EAGAIN)
-            std::cerr << "Accept failed" << std::endl;
         return;
-    }
 
     try
     {
@@ -45,13 +41,24 @@ void Server::acceptNewClient()
     }
 
     Client* new_client = new Client(client_fd);
-    _clients[client_fd] = new_client;
 
-    char client_ip[INET_ADDRSTRLEN];
-    inet_ntop(AF_INET, &client_addr.sin_addr, client_ip, sizeof(client_ip));
-    new_client->setIp(client_ip);
+    try
+    {
+        char client_ip[INET_ADDRSTRLEN];
+        inet_ntop(AF_INET, &client_addr.sin_addr, client_ip, sizeof(client_ip));
+        new_client->setIp(client_ip);
 
-    _poll_fds.push_back(createPollFd(client_fd));
+        _poll_fds.push_back(createPollFd(client_fd));
+        _clients[client_fd] = new_client;
+    }
+    catch (const std::exception &e)
+    {
+        std::cerr << "accecpt: " << e.what() << std::endl;
+        if (!_poll_fds.empty() && _poll_fds.back().fd == client_fd)
+            _poll_fds.pop_back();
+        delete new_client;
+        close(client_fd);
+    }
 
     std::cout << "New client connected: FD " << client_fd << std::endl;
 }

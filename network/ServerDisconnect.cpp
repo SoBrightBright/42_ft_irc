@@ -57,8 +57,3 @@ void Server::markForDisconnection(int client_fd, const std::string& reason)
     if (_to_disconnected.find(client_fd) == _to_disconnected.end())
         _to_disconnected[client_fd] = reason;
 }
-
-void Server::removeChannelIfEmpty(const std::string& channelName)
-{
-    (void)channelName;
-}

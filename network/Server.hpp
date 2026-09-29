@@ -54,7 +54,6 @@ class Server
 
         bool    isMarked(int client_fd) const;
         void    markForDisconnection(int client_fd, const std::string& reason);
-        void    removeChannelIfEmpty(const std::string &channelName);
 
     public:
         Server(int port, const std::string& password);
