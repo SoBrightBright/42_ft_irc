@@ -48,4 +48,6 @@ void	Kick::execute(Server &server, Client &client, const Message &msg)
 		comment = msg.getTrailing();
 	
 	channel->handleKick(client, *targetClient, comment);
+	if (channel->isEmpty())
+		server.deleteChannel(params[0]);
 }

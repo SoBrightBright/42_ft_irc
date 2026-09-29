@@ -38,4 +38,6 @@ void	Part::execute(Server &server, Client &client, const Message &msg)
 		comment = msg.getTrailing();
 
 	channel->handlePart(client, comment);
+	if (channel->isEmpty())
+		server.deleteChannel(params[0]);
 }
