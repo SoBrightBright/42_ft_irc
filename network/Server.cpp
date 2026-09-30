@@ -126,7 +126,12 @@ void Server::refreshPollEvents()
         _poll_fds[i].events = POLLIN;
         std::map<int, Client*>::iterator it = _clients.find(_poll_fds[i].fd);
 
-        if(it != _clients.end() && !it->second->getWriteBuffer().empty())
-            _poll_fds[i].events |= POLLOUT;
+        if(it != _clients.end())
+        {
+            if (it->second->getWriteBuffer().size() > MAX_SENDQ)
+                markForDisconnection(it->first, "SendQ exceeded");
+            else if (!it->second->getWriteBuffer().empty())
+                _poll_fds[i].events |= POLLOUT;
+        }
     }
 }

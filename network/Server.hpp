@@ -21,6 +21,8 @@
 
 // hpp에 선언 (상수값은 임의. 합의 하에 90~300에서 정하면 됨)
 const long TIMEOUT_SECONDS = 300;
+// write buffer의 상한선 체크
+const size_t MAX_SENDQ = 1024*1024;
 
 extern volatile std::sig_atomic_t g_stop;
 
@@ -40,7 +42,7 @@ class Server
 		std::map<std::string, Channel*>	_channels; // string은 채널이름, Channel*은 채널의 포인터
 
 		std::map<int, std::string>		_to_disconnected; // client_fd -> reason
-		std::map<int, std::string>		_closing;
+		std::map<int, std::string>		_closing; // 전송 후 닫을 클라이언트
 
 		void	acceptNewClient();
 		void	receiveData(int client_fd);

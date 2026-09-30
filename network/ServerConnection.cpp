@@ -40,10 +40,11 @@ void Server::acceptNewClient()
         return;
     }
 
-    Client* new_client = new Client(client_fd);
+    Client* new_client = NULL;
 
     try
     {
+        new_client = new Client(client_fd);
         char client_ip[INET_ADDRSTRLEN];
         inet_ntop(AF_INET, &client_addr.sin_addr, client_ip, sizeof(client_ip));
         new_client->setIp(client_ip);
