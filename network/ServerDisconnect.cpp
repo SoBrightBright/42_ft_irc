@@ -27,6 +27,7 @@ void Server::disconnect(int client_fd, const std::string& reason)
             break;
         }
     }
+    _closing.erase(client_fd);
     close(client_fd);
 
     std::cout << "Client disconnected: FD " << client_fd << " (" << reason << ")" << std::endl;

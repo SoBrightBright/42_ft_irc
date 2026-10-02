@@ -86,6 +86,8 @@ void Server::receiveData(int client_fd)
         markForDisconnection(client_fd, "Client disconnected");
         return;
     }
+    if (_closing.count(client_fd))
+        return;
 
     client->getReadBuffer().append(buffer, bytes_received);
     client->updateLastActivity();

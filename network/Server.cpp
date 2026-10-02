@@ -115,6 +115,12 @@ void Server::checkIdleClients()
         Client  *client = it->second;
         long    idle = client->getIdleTime();
 
+        if (_closing.count(it->first))
+        {
+            if (idle > 5)
+                markForDisconnection(it->first, _closing[it->first]);
+            continue;
+        }
         if (!client->isRegistered()) {
             if (idle > TIMEOUT_REGISTRATION)
 				markForDisconnection(it->first, "Registration timeout");

@@ -37,7 +37,7 @@ bool Server::checkPassword(const std::string& password) const
 
 void Server::disconnectClient(Client& client, const std::string& reason)
 {
-    markForDisconnection(client.getFd(), reason);
+    disconnectAfterFlush(client, reason);
 }
 
 Client* Server::findClientByNickname(const std::string& nickname)
