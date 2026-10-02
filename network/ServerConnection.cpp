@@ -59,6 +59,8 @@ void Server::acceptNewClient()
             _poll_fds.pop_back();
         delete new_client;
         close(client_fd);
+        // 10/02. 오류 발견 시 리턴 처리 필요 (연결이 안됐을테니까?)
+        return;
     }
 
     std::cout << "New client connected: FD " << client_fd << std::endl;

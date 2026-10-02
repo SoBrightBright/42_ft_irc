@@ -21,6 +21,7 @@
 
 // hpp에 선언 (상수값은 임의. 합의 하에 90~300에서 정하면 됨)
 const long TIMEOUT_SECONDS = 300;
+const long TIMEOUT_REGISTRATION = 60;
 // write buffer의 상한선 체크
 const size_t MAX_SENDQ = 1024*1024;
 

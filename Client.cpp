@@ -7,7 +7,8 @@
 // Constructors and Destructors
 Client::Client(int fd):
 	_fd(fd), _nickname(""), _username(""), _realname(""), _is_authenticated(false),
-	_is_registered(false), _is_password_verified(false), _read_buffer(""), _write_buffer(""), _lastActivity(std::time(NULL)) {}
+	_is_registered(false), _is_password_verified(false), _read_buffer(""), _write_buffer(""),
+	_lastActivity(std::time(NULL)), _pingSent(false) {}
 
 Client::Client(const Client& other)
 {
@@ -21,6 +22,7 @@ Client::Client(const Client& other)
 	_read_buffer = other._read_buffer;
 	_write_buffer = other._write_buffer;
 	_lastActivity = other._lastActivity;
+	_pingSent = other._pingSent;
 }
 
 Client &Client::operator=(const Client& other)
@@ -37,6 +39,7 @@ Client &Client::operator=(const Client& other)
 		_read_buffer = other._read_buffer;
 		_write_buffer = other._write_buffer;
 		_lastActivity = other._lastActivity;
+		_pingSent = other._pingSent;
 	}
 	return *this;
 }
@@ -107,9 +110,13 @@ std::string Client::popLine()
 	return line;
 }
 
-void Client::updateLastActivity() { _lastActivity = std::time(NULL); }
+void Client::updateLastActivity() { _lastActivity = std::time(NULL); _pingSent = false; }
 long Client::getIdleTime() const { return static_cast<long>(std::difftime(std::time(NULL), _lastActivity));}
 
+bool Client::isPingSent() const { return _pingSent; }
+void Client::setPingSent(bool status) { _pingSent = status; }
+
+// 10/02: 환영 메시지는 001~004 전부 필수라고 제안받음.
 void Client::tryCompleteRegistration()
 {
     if (!isRegistered() && hasPasswordVerified() && !getNickname().empty() && !getUsername().empty())
@@ -119,6 +126,12 @@ void Client::tryCompleteRegistration()
             "Welcome to the ft_irc Network, " + getNickname() + "!" + getUsername() + "@" + getIp()));
 		sendReply(IrcReply::formatReply(IrcNumeric::RPL_YOURHOST, getNickname(),
             "Your host is ircserv, running version 1.0"));
+		sendReply(IrcReply::formatReply(IrcNumeric::RPL_CREATED, getNickname(),
+			"This server was created for ft_irc"));
+		// RFC2812 5.1: 004는 trailing 없이 공백 구분 4개 필드, 사용자모드 미지원.
+		// "o"는 자리값, 채널 모드는 itkol 지원
+		sendReply(":ircserv " + IrcNumeric::RPL_MYINFO + " " + getNickname() +
+			" ircserv 1.0 o itkol");
     }
 }
 

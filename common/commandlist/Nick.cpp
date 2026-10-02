@@ -37,8 +37,10 @@ static bool	isValidNickname(const std::string &newer) {
 	return true;
 }
 
-static std::string nickNotice(const std::string &old, const std::string &newer, const std::string &user) {
-	return (":" + old + "!" + user + "@localhost NICK :" + newer);
+// 10/02: 호스트를 IP 따라서.
+static std::string nickNotice(const std::string &old, const std::string &newer,
+							const std::string &user, const std::string &host) {
+	return (":" + old + "!" + user + "@" + host + " NICK :" + newer);
 }
 
 // execute 공통: parameter overcontain에 대해서 - 접근조차 없이 무시한다...
@@ -46,13 +48,9 @@ static std::string nickNotice(const std::string &old, const std::string &newer, 
 void	Nick::execute(Server &server, Client &client, const Message &msg) {
 	const std::vector<std::string> &params = msg.getParameter();
 
-	std::string	target = "*";
-	if (client.isRegistered())
-		target = client.getNickname();
-
-	if (params.empty()) {
+	if (params.empty() || params[0].empty()) {
 		client.sendReply(IrcReply::formatReply(IrcNumeric::ERR_NONICKNAMEGIVEN,
-											   target, "No nickname given"));
+									IrcReply::targetname(client), "No nickname given"));
 		return;
 	}
 	
@@ -62,13 +60,13 @@ void	Nick::execute(Server &server, Client &client, const Message &msg) {
 		
 	if (!isValidNickname(newNickname)) {
 		client.sendReply(IrcReply::formatReplyWithParameter(IrcNumeric::ERR_ERRONEUSNICKNAME,
-												target, newNickname, "Erroneous nickname"));
+									IrcReply::targetname(client), newNickname, "Erroneous nickname"));
 		return;
 	}
 
 	if (server.isNicknameTaken(newNickname, &client)) {
 		client.sendReply(IrcReply::formatReplyWithParameter(IrcNumeric::ERR_NICKNAMEINUSE,
-								 			target, newNickname, "Nickname is already in use"));
+								 	IrcReply::targetname(client), newNickname, "Nickname is already in use"));
 		return;
 	}
 
@@ -78,7 +76,7 @@ void	Nick::execute(Server &server, Client &client, const Message &msg) {
 		if (oldNickname == newNickname)
 			return;
 	
-		std::string	notice = nickNotice(oldNickname, newNickname, client.getUsername());
+		std::string	notice = nickNotice(oldNickname, newNickname, client.getUsername(), client.getIp());
 		client.broadcastNickChange(notice);
 	} else {
 		client.tryCompleteRegistration();

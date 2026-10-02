@@ -107,12 +107,26 @@ void Server::run()
     }
 }
 
+// 10/02. 유휴 시간 동안, 살아있는지 체크를 한 번 하고 계속 갱신 + 미로그인시 짧은 시간 제한
 void Server::checkIdleClients()
 {
     for (std::map<int, Client*>::iterator it = _clients.begin(); it != _clients.end(); ++it)
     {
-        if (it->second->getIdleTime() > TIMEOUT_SECONDS)
+        Client  *client = it->second;
+        long    idle = client->getIdleTime();
+
+        if (!client->isRegistered()) {
+            if (idle > TIMEOUT_REGISTRATION)
+				markForDisconnection(it->first, "Registration timeout");
+			continue ;
+        }
+
+        if (idle > TIMEOUT_SECONDS)
             markForDisconnection(it->first, "Ping timeout");
+        else if (idle > TIMEOUT_SECONDS / 2 && !client->isPingSent()) {
+            client->sendReply("PING :ircserv");
+            client->setPingSent(true);
+        }
     }
 }
 

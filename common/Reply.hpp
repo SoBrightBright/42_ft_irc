@@ -3,6 +3,8 @@
 
 #include <string>
 
+class Client;
+
 namespace Numeric
 {
 	// Channel

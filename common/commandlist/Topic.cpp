@@ -14,7 +14,7 @@ Topic	&Topic::operator=(const Topic &obj) { (void)obj; return *this; }
 bool	Topic::needLogin() const { return true; }
 
 // <channel> [ <topic> ]
-
+// 10/02: 메세지 파라미터 변경으로 인한 코드 수정 & 함수 통일
 void	Topic::execute(Server &server, Client &client, const Message &msg)
 {
 	const std::vector<std::string> &params = msg.getParameter();
@@ -38,9 +38,9 @@ void	Topic::execute(Server &server, Client &client, const Message &msg)
 
 	std::string topic = "";
 	bool hastopicparam = false;
-	if (msg.hasTrailing())
+	if (params.size() >= 2)
 	{
-		topic = msg.getTrailing();
+		topic = params[1];
 		hastopicparam = true;
 	}
 	

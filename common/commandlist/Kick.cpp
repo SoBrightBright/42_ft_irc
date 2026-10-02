@@ -44,8 +44,8 @@ void	Kick::execute(Server &server, Client &client, const Message &msg)
 	}
 
 	std::string	comment = "";
-	if (msg.hasTrailing())
-		comment = msg.getTrailing();
+	if (params.size() >= 3)
+		comment = params[2];
 	
 	channel->handleKick(client, *targetClient, comment);
 	if (channel->isEmpty())
