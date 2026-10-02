@@ -37,17 +37,23 @@ static bool	isValidNickname(const std::string &newer) {
 	return true;
 }
 
+<<<<<<< Updated upstream
+=======
+// 10/02: 호스트를 IP 따라서.
+static std::string nickNotice(const std::string &old, const std::string &newer,
+							const std::string &user, const std::string &host) {
+	return (":" + old + "!" + user + "@" + host + " NICK :" + newer);
+}
+
+>>>>>>> Stashed changes
 // execute 공통: parameter overcontain에 대해서 - 접근조차 없이 무시한다...
 // NICK <nickname> : 닉네임 설정/변경. 서버 내 중복 닉네임 체크 및 유효성 검사 후 적용
 void	Nick::execute(Server &server, Client &client, const Message &msg) {
 	const std::vector<std::string> &params = msg.getParameter();
 
-	std::string	target = "*";
-	if (client.isRegistered())
-		target = client.getNickname();
-
-	if (params.empty()) {
+	if (params.empty() || params[0].empty()) {
 		client.sendReply(IrcReply::formatReply(IrcNumeric::ERR_NONICKNAMEGIVEN,
+<<<<<<< Updated upstream
 											   target, "No nickname given"));
 
 		const std::string &newNickname = params[0];
@@ -64,5 +70,37 @@ void	Nick::execute(Server &server, Client &client, const Message &msg) {
 		}
 
 		client.setNickname(newNickname);
+=======
+									IrcReply::targetname(client), "No nickname given"));
+		return;
+	}
+	
+	bool				wasRegistered = client.isRegistered();
+	const std::string	oldNickname = client.getNickname();
+	const std::string	&newNickname = params[0];
+		
+	if (!isValidNickname(newNickname)) {
+		client.sendReply(IrcReply::formatReplyWithParameter(IrcNumeric::ERR_ERRONEUSNICKNAME,
+									IrcReply::targetname(client), newNickname, "Erroneous nickname"));
+		return;
+	}
+
+	if (server.isNicknameTaken(newNickname, &client)) {
+		client.sendReply(IrcReply::formatReplyWithParameter(IrcNumeric::ERR_NICKNAMEINUSE,
+								 	IrcReply::targetname(client), newNickname, "Nickname is already in use"));
+		return;
+	}
+
+	client.setNickname(newNickname);
+	
+	if (wasRegistered) {
+		if (oldNickname == newNickname)
+			return;
+	
+		std::string	notice = nickNotice(oldNickname, newNickname, client.getUsername(), client.getIp());
+		client.broadcastNickChange(notice);
+	} else {
+		client.tryCompleteRegistration();
+>>>>>>> Stashed changes
 	}
 }

@@ -15,7 +15,7 @@ Mode	&Mode::operator=(const Mode &obj) { (void)obj; return *this; }
 bool	Mode::needLogin() const { return true; }
 
 // <channel> *( ( "-" / "+" ) *<modes> *<modeparams> )
-
+// 10/02: 메세지 파라미터 변경으로 인한 코드 수정 & 함수 통일
 void	Mode::execute(Server &server, Client &client, const Message &msg)
 {
 	const std::vector<std::string> &params = msg.getParameter();
@@ -24,7 +24,7 @@ void	Mode::execute(Server &server, Client &client, const Message &msg)
 	if (client.isRegistered())
 		targetName = client.getNickname();
 
-	if (params.size() < 1)
+	if (params.size() < 1 || params[0].empty())
 	{
 		client.getWriteBuffer() += makeReply(Numeric::ERR_NEEDMOREPARAMS, targetName, "MODE :Not enough parameters");
 		return ;

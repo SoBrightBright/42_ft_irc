@@ -38,7 +38,7 @@ bool	Message::hasTrailing() const { return existTrailing;}
 // 안정성 요구사항과 실전 리스크 대응 측면에서 파싱오류는 true/false 처리로만 마무리
 // 하지만? 필요하다면 bool -> enum화해서 별도 처리 가능.
 bool	Message::spliter(const std::string &raw) {
-	// RFC2812: line은 512바이트가 최대. 그런데 raw는 network 측에서 \r\n을 자르고 들어오니 510바이트가 최대.
+	// RFC2812 2.3: CR-LF 포함 512byte. raw는 \r\n을 제외하고 들어오므로 510byte.
 	if (raw.empty() || raw.size() > 510)
 		return false;
 
@@ -91,11 +91,20 @@ bool	Message::spliter(const std::string &raw) {
 	if (pos >= searedSize)
 		return true;
 
+	// 10/02: 모든 파라미터가 :이 붙거나 붙지 않는 등의 입력을 다 허용하므로... 갈아엎었다.
 	// get parameter & trailing
+	// RFC2812 2.3.1: middle과 trailing은 의미상 동등.
+	// RFC2812 2.3.1: middle이 이미 14개라면 15번째부터는 ':'가 없어도 trailing.
 	size_t	paramCount = 0;
 	while (pos < searedSize) {
-		if (seared[pos] == ':') {
-			setTrailing(seared.substr(pos + 1));
+		if (seared[pos] == ':' || paramCount == 14) {
+			std::string	trail;
+			if (seared[pos] == ':')
+				trail = seared.substr(pos + 1);
+			else
+				trail = seared.substr(pos);
+			setTrailing(trail);
+			addParameter(trail);
 			++paramCount;
 			break ;
 		}
@@ -103,7 +112,6 @@ bool	Message::spliter(const std::string &raw) {
 		end = seared.find(' ', pos);
 		if (end == std::string::npos) {
 			addParameter(seared.substr(pos));
-			++paramCount;
 			break;
 		}
 		addParameter(seared.substr(pos, end - pos));
@@ -112,9 +120,5 @@ bool	Message::spliter(const std::string &raw) {
 		while (pos < searedSize && seared[pos] == ' ')
 			++pos;
 	}
-
-	// parameter + trailing limit 15
-	if (paramCount > 15)
-		return false;
 	return true;
 }

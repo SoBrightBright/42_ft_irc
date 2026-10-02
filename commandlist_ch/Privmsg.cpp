@@ -15,7 +15,7 @@ Privmsg	&Privmsg::operator=(const Privmsg &obj) { (void)obj; return *this; }
 bool	Privmsg::needLogin() const { return true; }
 
 // <msgtarget> <text to be sent>
-
+// 10/02: 메세지 파라미터 변경으로 인한 코드 수정 & 함수 통일
 void	Privmsg::execute(Server &server, Client &client, const Message &msg)
 {
 	const std::vector<std::string> &params = msg.getParameter();
@@ -24,12 +24,27 @@ void	Privmsg::execute(Server &server, Client &client, const Message &msg)
 	if (client.isRegistered())
 		target = client.getNickname();
 
-	if (params.size() < 1)
+	if (params.size() < 1 || params[0].empty())
 	{
+<<<<<<< Updated upstream:commandlist_ch/Privmsg.cpp
 		client.getWriteBuffer() += makeReply(Numeric::ERR_NORECIPIENT, target, ":No recipient given (PRIVMSG)");
 		return ;
 	}
 
+=======
+		client.sendReply(makeReply(Numeric::ERR_NORECIPIENT, target, ":No recipient given (PRIVMSG)"));
+		return ;
+	}
+
+	if (params.size() < 2 || params[1].empty())
+	{
+		client.sendReply(makeReply(Numeric::ERR_NOTEXTTOSEND, target, ":No text to send"));
+		return ;
+	}
+
+	std::string comment = params[1];
+
+>>>>>>> Stashed changes:common/commandlist/Privmsg.cpp
 	Channel *channel = server.findChannel(params[0]);
 	std::string comment = "";
 	if (msg.hasTrailing())

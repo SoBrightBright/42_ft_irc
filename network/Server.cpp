@@ -87,6 +87,7 @@ void Server::run()
     }
 }
 
+<<<<<<< Updated upstream
 void Server::markForDisconnection(int client_fd) // 클라이언트 정리하기 위해 _to_disconnected 벡터에 추가
 {
     for (size_t i = 0; i < _to_disconnected.size(); ++i)
@@ -112,6 +113,28 @@ bool Server::isNicknameTaken(const std::string& nickname)
     {
         if (it->second->getNickname() == nickname)
             return true;
+=======
+// 10/02. 유휴 시간 동안, 살아있는지 체크를 한 번 하고 계속 갱신 + 미로그인시 짧은 시간 제한
+void Server::checkIdleClients()
+{
+    for (std::map<int, Client*>::iterator it = _clients.begin(); it != _clients.end(); ++it)
+    {
+        Client  *client = it->second;
+        long    idle = client->getIdleTime();
+
+        if (!client->isRegistered()) {
+            if (idle > TIMEOUT_REGISTRATION)
+				markForDisconnection(it->first, "Registration timeout");
+			continue ;
+        }
+
+        if (idle > TIMEOUT_SECONDS)
+            markForDisconnection(it->first, "Ping timeout");
+        else if (idle > TIMEOUT_SECONDS / 2 && !client->isPingSent()) {
+            client->sendReply("PING :ircserv");
+            client->setPingSent(true);
+        }
+>>>>>>> Stashed changes
     }
     return false;
 }

@@ -3,8 +3,14 @@
 #include <string>
 
 Client::Client(int fd):
+<<<<<<< Updated upstream
 	_fd(fd), _nickname(""), _username(""), _is_authenticated(false),
 	_is_registered(false), _read_buffer(""), _write_buffer("") {}
+=======
+	_fd(fd), _nickname(""), _username(""), _realname(""), _is_authenticated(false),
+	_is_registered(false), _is_password_verified(false), _read_buffer(""), _write_buffer(""),
+	_lastActivity(std::time(NULL)), _pingSent(false) {}
+>>>>>>> Stashed changes
 
 Client::Client(const Client& other)
 {
@@ -15,6 +21,11 @@ Client::Client(const Client& other)
 	_is_registered = other._is_registered;
 	_read_buffer = other._read_buffer;
 	_write_buffer = other._write_buffer;
+<<<<<<< Updated upstream
+=======
+	_lastActivity = other._lastActivity;
+	_pingSent = other._pingSent;
+>>>>>>> Stashed changes
 }
 
 Client &Client::operator=(const Client& other)
@@ -28,6 +39,11 @@ Client &Client::operator=(const Client& other)
 		_is_registered = other._is_registered;
 		_read_buffer = other._read_buffer;
 		_write_buffer = other._write_buffer;
+<<<<<<< Updated upstream
+=======
+		_lastActivity = other._lastActivity;
+		_pingSent = other._pingSent;
+>>>>>>> Stashed changes
 	}
 	return *this;
 }
@@ -75,4 +91,63 @@ std::string Client::popLine()
 		line.erase(line.size() - 1);
 	_read_buffer.erase(0, pos + 1);
 	return line;
+<<<<<<< Updated upstream
 }
+=======
+}
+
+void Client::updateLastActivity() { _lastActivity = std::time(NULL); _pingSent = false; }
+long Client::getIdleTime() const { return static_cast<long>(std::difftime(std::time(NULL), _lastActivity));}
+
+bool Client::isPingSent() const { return _pingSent; }
+void Client::setPingSent(bool status) { _pingSent = status; }
+
+// 10/02: 환영 메시지는 001~004 전부 필수라고 제안받음.
+void Client::tryCompleteRegistration()
+{
+    if (!isRegistered() && hasPasswordVerified() && !getNickname().empty() && !getUsername().empty())
+	{
+        _is_registered = true;
+		sendReply(IrcReply::formatReply(IrcNumeric::RPL_WELCOME, getNickname(),
+            "Welcome to the ft_irc Network, " + getNickname() + "!" + getUsername() + "@" + getIp()));
+		sendReply(IrcReply::formatReply(IrcNumeric::RPL_YOURHOST, getNickname(),
+            "Your host is ircserv, running version 1.0"));
+		sendReply(IrcReply::formatReply(IrcNumeric::RPL_CREATED, getNickname(),
+			"This server was created for ft_irc"));
+		// RFC2812 5.1: 004는 trailing 없이 공백 구분 4개 필드, 사용자모드 미지원.
+		// "o"는 자리값, 채널 모드는 itkol 지원
+		sendReply(":ircserv " + IrcNumeric::RPL_MYINFO + " " + getNickname() +
+			" ircserv 1.0 o itkol");
+    }
+}
+
+void Client::broadcastNickChange(const std::string &notice) {
+	sendReply(notice);
+
+	std::set<Client *> notified;
+	notified.insert(this);
+
+	for (std::map<std::string, Channel*>::const_iterator it = _joinedChannels.begin();
+		it != _joinedChannels.end(); ++it) {
+			const std::vector<Client *> &members = it->second->getMembers();
+			for (size_t idx = 0; idx < members.size(); ++idx) {
+				if (notified.insert(members[idx]).second)
+					members[idx]->sendReply(notice);
+			}
+	}
+}
+
+void Client::broadcastQuit(const std::string &notice) {
+	std::set<Client *> notified;
+	notified.insert(this);
+
+	for (std::map<std::string, Channel*>::const_iterator it = _joinedChannels.begin();
+		it != _joinedChannels.end(); ++it) {
+			const std::vector<Client *> &members = it->second->getMembers();
+			for (size_t idx = 0; idx < members.size(); ++idx) {
+				if (notified.insert(members[idx]).second)
+					members[idx]->sendReply(notice);
+			}
+	}
+}
+>>>>>>> Stashed changes
