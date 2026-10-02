@@ -5,15 +5,12 @@
 	class Client;
 	
 	namespace IrcNumeric {
-<<<<<<< Updated upstream
-=======
 		// 등록 완료 시 웰컴 메시지
 		const std::string RPL_WELCOME	= "001";
 		const std::string RPL_YOURHOST	= "002";
 		const std::string RPL_CREATED	= "003";
 		const std::string RPL_MYINFO	= "004";
 		
->>>>>>> Stashed changes
 		// common (parser, registry)
 		const std::string	ERR_UNKNOWNCOMMAND	= "421";
 		const std::string	ERR_NOTREGISTERED	= "451";
@@ -22,7 +19,7 @@
 		// NICK
 		const std::string	ERR_NONICKNAMEGIVEN		= "431";
 		const std::string	ERR_ERRONEUSNICKNAME	= "432";
-		const std::string	ERR_ERRNICKNAMEINUSE	= "433";
+		const std::string	ERR_NICKNAMEINUSE		= "433";
 
 		// USER, PASS
 		const std::string	ERR_ALREADYREGISTERED	= "462";

@@ -11,6 +11,11 @@ Channel::Channel()
 	// std::string, std::vector 같은 클래스 타입은 값이 없을 때 기본으로 뭘로 시작할지를 스스로 이미 정의해두고 있어서 아무것도 안 써둬도 안전하게 초기화 가능.
 }
 
+Channel::~Channel()
+{
+
+}
+
 Channel::Channel(const std::string &name)
 : _name(name), _topic(""), _key(""), _userLimit(0), _inviteOnly(false), _topicByOpOnly(false)
 {
@@ -39,11 +44,6 @@ Channel &Channel::operator=(const Channel &other)
 	return *this;
 }
 
-Channel::~Channel()
-{
-
-}
-
 //////////////////////////////////////////////////
 
 const std::string 	&Channel::getName() const
@@ -54,6 +54,11 @@ const std::string 	&Channel::getName() const
 const std::string	&Channel::getTopic() const
 {
 	return _topic;
+}
+
+const std::vector<Client *> &Channel::getMembers() const
+{
+	return _members;
 }
 
 bool	Channel::checkKey(const std::string &key) const
@@ -98,15 +103,25 @@ bool	Channel::isOperator(const Client &client) const
 	return false;
 }
 
+bool	Channel::isEmpty() const
+{
+	return _members.empty();
+}
+
 void	Channel::addMember(Client &client)
 {
 	if (!isMember(client))
+	{
 		_members.push_back(&client);
+		client.addJoinedChannels(_name, this);
+	}
 }
 
 void	Channel::removeMember(Client &client)
 {
 	_members.erase(std::remove(_members.begin(), _members.end(), &client), _members.end());
+	removeOperator(client);
+	client.removeJoinedChannels(_name);
 }
 
 void	Channel::addOperator(Client &client)
@@ -166,23 +181,39 @@ void	Channel::setModeUserLimit(bool enable, int userLimit) // l
 
 void	Channel::handleJoin(Client &user, const std::string &key)
 {
+	// 이미 참가한 채널일 경우 조용히 무시 (명시되어 있지 않음)
+	if (isMember(user))
+		return ;
+
+	// 비밀번호 확인
 	if (!_key.empty() && !checkKey(key))
 	{
 		sendToOne(user, makeReply(Numeric::ERR_BADCHANNELKEY, user.getNickname(), _name + " :Cannot join channel (+k)"));
 		return ;
 	}
+	// 초대 여부 확인
 	if (_inviteOnly && !isInvited(user))
 	{
 		sendToOne(user, makeReply(Numeric::ERR_INVITEONLYCHAN, user.getNickname(), _name + " :Cannot join channel (+i)"));
 		return ;
 	}
+	// 참여 인원 제한 확인
 	if (isFull())
 	{
 		sendToOne(user, makeReply(Numeric::ERR_CHANNELISFULL, user.getNickname(), _name + " :Cannot join channel (+l)"));
 		return ;
 	}
 
+	// 한 번 사용된 초대가 재사용되지 않게끔 삭제
+	_invitedUserNicks.erase(std::remove(_invitedUserNicks.begin(), _invitedUserNicks.end(), user.getNickname()), _invitedUserNicks.end());
+
+	// 채널 생성자에게 operator 부여
+	bool isFirst = _members.empty();
 	addMember(user);
+	if (isFirst)
+		addOperator(user);
+	
+	// 메시지 출력
 	sendToAll(makeCommand(user, "JOIN", _name));
 	if (_topic.size() == 0)
 		sendToOne(user, makeReply(Numeric::RPL_NOTOPIC, user.getNickname(), _name + " :No topic is set"));
@@ -191,16 +222,15 @@ void	Channel::handleJoin(Client &user, const std::string &key)
 	std::string users;	
 	for (size_t i = 0; i < _members.size(); i++)
 	{
+		if (i > 0)
+			users += " ";
+		if (isOperator(*_members[i]))
+			users += "@";
 		users += _members[i]->getNickname();
-		if (i + 1 < _members.size())
-			users += ", ";
 	}
 	sendToOne(user, makeReply(Numeric::RPL_NAMREPLY, user.getNickname(), "= " + _name + " :" + users));
 	sendToOne(user, makeReply(Numeric::RPL_ENDOFNAMES, user.getNickname(), _name + " :End of /NAMES list"));
 }
-// notice about all commands their server receives which affect the channel
-// MODE, KICK, PART, QUIT and of course PRIVMSG/NOTICE
-// ERR_NEEDMOREPARAMS
 
 void	Channel::handlePart(Client &user, const std::string &message)
 {
@@ -216,12 +246,10 @@ void	Channel::handlePart(Client &user, const std::string &message)
 	else
 		reason = user.getNickname();
 
-	removeMember(user);
-
 	sendToAll(makeCommand(user, "PART", _name + " :" + reason));
+	removeMember(user);
+	// 명시되어 있지 않으나 PART 된 사용자도 메시지를 받는 것이 자연스럽다고 판단
 }
-// ERR_NEEDMOREPARAMS
-// ERR_NOSUCHCHANNEL
 
 void	Channel::handleKick(Client &kickingUser, Client &kickedUser, const std::string &comment)
 {
@@ -247,13 +275,9 @@ void	Channel::handleKick(Client &kickingUser, Client &kickedUser, const std::str
 	else
 		reason = kickingUser.getNickname();
 
+	sendToAll(makeCommand(kickingUser, "KICK", _name + " " + kickedUser.getNickname()) + " :" + reason);
 	removeMember(kickedUser);
-
-	sendToAll(makeCommand(kickingUser, "KICK", _name + " " + kickedUser.getNickname()));
 }
-// ERR_NEEDMOREPARAMS
-// ERR_NOSUCHCHANNEL
-// ERR_BADCHANMASK
 
 void	Channel::handleTopic(Client &user, const std::string &topic, bool hasTopicParam)
 {
@@ -278,10 +302,6 @@ void	Channel::handleTopic(Client &user, const std::string &topic, bool hasTopicP
 	_topic = topic;
 	sendToAll(makeCommand(user, "TOPIC", _name + " :" + _topic));
 }
-// C 파싱
-// ERR_NEEDMOREPARAMS
-
-// ERR_NOCHANMODES
 
 void	Channel::handleInvite(Client &invitingUser, Client &invitedUser)
 {
@@ -308,8 +328,6 @@ void	Channel::handleInvite(Client &invitingUser, Client &invitedUser)
 	sendToOne(invitingUser, makeReply(Numeric::RPL_INVITING, invitingUser.getNickname(), _name + " " + invitedUser.getNickname()));
 	sendToOne(invitedUser, makeCommand(invitingUser, "INVITE", invitedUser.getNickname() + " " + _name));
 }
-// ERR_NEEDMOREPARAMS
-// ERR_NOSUCHNICK
 
 std::string	Channel::buildModeString() const
 {
@@ -335,6 +353,30 @@ std::string	Channel::buildModeString() const
 	return modes + params;
 }
 
+static void appendApplied(std::string &applied, char &lastSign, bool enable, char flag)
+{
+	char sign = enable ? '+' : '-';
+	if (sign != lastSign)
+	{
+		applied += sign;
+		lastSign = sign;
+	}
+	applied += flag;
+}
+
+static bool parseLimit(const std::string &str, int &out)
+{
+	if (str.empty() || str.size() > 9)
+		return false;
+	for (size_t i = 0; i < str.size(); i++)
+	{
+		if (str[i] < '0' || str[i] > '9')
+			return false;
+	}
+	out = std::atoi(str.c_str());
+	return out > 0;
+}
+
 void	Channel::handleMode(Client &user, const std::string &modes, const std::vector<std::string> &modeParams)
 {
 	if (modes.empty())
@@ -348,8 +390,11 @@ void	Channel::handleMode(Client &user, const std::string &modes, const std::vect
 		return ;
 	}
 
-	bool	enable = false;
-	size_t	paramIndex = 0;
+	bool		enable = true;
+	size_t		paramIndex = 0;
+	std::string applied;
+	std::string appliedArgs;
+	char		lastSign = 0;
 
 	for (size_t i = 0; i < modes.size(); i++)
 	{
@@ -369,41 +414,61 @@ void	Channel::handleMode(Client &user, const std::string &modes, const std::vect
 		switch (mode)
 		{
 			case 'i':
-				setModeInviteOnly(enable);
+				if (_inviteOnly != enable)
+				{
+					setModeInviteOnly(enable);
+					appendApplied(applied, lastSign, enable, 'i');
+				}
 				break ;
 
 			case 't':
-				setModeTopicRestriction(enable);
+				if (_topicByOpOnly != enable)
+				{
+					setModeTopicRestriction(enable);
+					appendApplied(applied, lastSign, enable, 't');
+				}
 				break ;
 
 			case 'k':
 				if (enable)
 				{
+					if (paramIndex >= modeParams.size())
+						break ;
+					const std::string &newKey = modeParams[paramIndex++];
 					if (!_key.empty())
 					{
 						sendToOne(user, makeReply(Numeric::ERR_KEYSET, user.getNickname(), _name + " :Channel key already set"));
 						break ;
 					}
-					if (paramIndex < modeParams.size())
-						setModeKey(true, modeParams[paramIndex++]);
+					setModeKey(true, newKey);
+					appendApplied(applied, lastSign, true, 'k');
+					appliedArgs += " " + newKey;
 				}
-				else
+				else if (!_key.empty())
+				{
 					setModeKey(false, "");
-				break ;
-			
-			case 'o':
-				// TODO:: setModeOperator(enable, client );
-				// 닉네임 문자열로 Client * 찾기 -> server 측이랑 같이 봐야 함
-				// if (paramIndex < modeParams.size())
-				//	paramIndex++;
-				// ERR_USERNOTINCHANNEL
+					appendApplied(applied, lastSign, false, 'k');
+				}
 				break ;
 
 			case 'l':
-				if (enable && paramIndex < modeParams.size())
-					setModeUserLimit(true, std::atoi(modeParams[paramIndex++].c_str()));
-				else
+				if (enable)
+				{
+					if (paramIndex >= modeParams.size())
+						break ;
+					const std::string &raw = modeParams[paramIndex++];
+					int limit = 0;
+					if (!parseLimit(raw, limit))
+						break ;
+					setModeUserLimit(true, limit);
+					appendApplied(applied, lastSign, true, 'l');
+					appliedArgs += " " + raw;
+				}
+				else if (_userLimit > 0)
+				{
 					setModeUserLimit(false, 0);
+					appendApplied(applied, lastSign, false, 'l');
+				}
 				break ;
 
 			default:
@@ -411,16 +476,28 @@ void	Channel::handleMode(Client &user, const std::string &modes, const std::vect
 				break ;
 		}
 	}
+	if (!applied.empty())
+		sendToAll(makeCommand(user, "MODE", _name + " " + applied + appliedArgs));
 }
-//	ERR_NEEDMOREPARAMS
-//  ERR_NOCHANMODES
 
-void	Channel::handlePrivmsg(Client &sender, Client &recipient, const std::string &message)
+void	Channel::handleModeOperator(bool enable, Client &target, Client &user)
 {
-	sendToOne(recipient, makeCommand(sender, "PRIVMSG", recipient.getNickname() + " :" + message));
+	if (!isMember(target))
+	{
+		sendToOne(user, makeReply(Numeric::ERR_USERNOTINCHANNEL, user.getNickname(), target.getNickname() + " " + _name + " :They aren't on that channel"));
+		return ;
+	}
+	if (!isOperator(user))
+	{
+		sendToOne(user, makeReply(Numeric::ERR_CHANOPRIVSNEEDED, user.getNickname(), _name + " :You're not channel operator"));
+		return ;
+	}
+	if (isOperator(target) == enable)
+		return ;
+	setModeOperator(enable, target);
+	std::string modeStr = enable ? "+o" : "-o";
+	sendToAll(makeCommand(user, "MODE", _name + " " + modeStr + " " + target.getNickname()));
 }
-// :로 시작 안 하면 안 되는 것 같은?
-// TODO:: 개인 DM은 애초에 채널 객체에 들어올 필요가 없어서 밖으로 빼는 게 나을 것 같음.
 
 void	Channel::handleChannelPrivmsg(Client &sender, const std::string &message)
 {
@@ -431,19 +508,16 @@ void	Channel::handleChannelPrivmsg(Client &sender, const std::string &message)
 	}
 	sendToAllExcept(sender, makeCommand(sender, "PRIVMSG", _name + " :" + message));
 }
-// ERR_NORECIPIENT
-// ERR_NOTEXTTOSEND
-// ERR_NOSUCHNICK
 
 void	Channel::sendToOne(Client &targetUser, const std::string &message) const
 {
-	targetUser.getWriteBuffer() += message + "\r\n";
+	targetUser.sendReply(message);
 }
 
 void	Channel::sendToAll(const std::string &message) const
 {
 	for (size_t i = 0; i < _members.size(); i++)
-		_members[i]->getWriteBuffer() += message + "\r\n";
+		_members[i]->sendReply(message);
 }
 
 void	Channel::sendToAllExcept(const Client &except, const std::string &message) const
@@ -451,6 +525,6 @@ void	Channel::sendToAllExcept(const Client &except, const std::string &message) 
 	for (size_t i = 0; i < _members.size(); i++)
 	{
 		if (_members[i] != &except)
-			_members[i]->getWriteBuffer() += message + "\r\n";
+			_members[i]->sendReply(message);
 	}
 }

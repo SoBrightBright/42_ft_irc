@@ -1,31 +1,28 @@
 #include "Client.hpp"
-
+#include "channel/Channel.hpp"
+#include <iostream>
 #include <string>
+#include <set>
 
+// Constructors and Destructors
 Client::Client(int fd):
-<<<<<<< Updated upstream
-	_fd(fd), _nickname(""), _username(""), _is_authenticated(false),
-	_is_registered(false), _read_buffer(""), _write_buffer("") {}
-=======
 	_fd(fd), _nickname(""), _username(""), _realname(""), _is_authenticated(false),
 	_is_registered(false), _is_password_verified(false), _read_buffer(""), _write_buffer(""),
 	_lastActivity(std::time(NULL)), _pingSent(false) {}
->>>>>>> Stashed changes
 
 Client::Client(const Client& other)
 {
 	_fd = other._fd;
 	_nickname = other._nickname;
 	_username = other._username;
+	_realname = other._realname;
 	_is_authenticated = other._is_authenticated;
 	_is_registered = other._is_registered;
+	_is_password_verified = other._is_password_verified;
 	_read_buffer = other._read_buffer;
 	_write_buffer = other._write_buffer;
-<<<<<<< Updated upstream
-=======
 	_lastActivity = other._lastActivity;
 	_pingSent = other._pingSent;
->>>>>>> Stashed changes
 }
 
 Client &Client::operator=(const Client& other)
@@ -35,53 +32,73 @@ Client &Client::operator=(const Client& other)
 		_fd = other._fd;
 		_nickname = other._nickname;
 		_username = other._username;
+		_realname = other._realname;
 		_is_authenticated = other._is_authenticated;
 		_is_registered = other._is_registered;
+		_is_password_verified = other._is_password_verified;
 		_read_buffer = other._read_buffer;
 		_write_buffer = other._write_buffer;
-<<<<<<< Updated upstream
-=======
 		_lastActivity = other._lastActivity;
 		_pingSent = other._pingSent;
->>>>>>> Stashed changes
 	}
 	return *this;
 }
 
 Client::~Client() {}
 
+// Getters
 int Client::getFd() const { return _fd; }
+
+std::string Client::getIp() const { return _ip; }
 
 std::string Client::getNickname() const { return _nickname; }
 
 std::string Client::getUsername() const { return _username; }
 
-bool Client::isRegistered() const { return _is_registered; }
-
-bool Client::isAuthenticated() const { return _is_authenticated; }
-
-void Client::sendReply(const std::string& message)
-{
-	_write_buffer += message + "\r\n";
-}
-
 std::string& Client::getReadBuffer() { return _read_buffer; }
 
 std::string& Client::getWriteBuffer() { return _write_buffer; }
 
-std::string Client::getIp() const { return _ip; }
+std::string Client::getRealname() const { return _realname; }
+
+const std::map<std::string, Channel*>& Client::getJoinedChannels() { return _joinedChannels; }
+
+// Setters
+void Client::setIp(const std::string& ip) { _ip = ip; }
 
 void Client::setNickname(const std::string& nickname) { _nickname = nickname; }
 
 void Client::setUsername(const std::string& username) { _username = username; }
 
-void Client::setAuthenticated(bool status) { _is_authenticated = status; }
+void Client::setRealname(const std::string& realname) { _realname = realname; }
 
 void Client::setRegistered(bool status) { _is_registered = status; }
 
-void Client::setIp(const std::string& ip) { _ip = ip; }
+void Client::setPasswordVerified(bool status) { _is_password_verified = status; }
+
+
+//JoinedChannels
+void Client::addJoinedChannels(const std::string& name, Channel* channel)
+{
+	_joinedChannels[name] = channel;
+}
+
+void Client::removeJoinedChannels(const std::string& name)
+{
+	_joinedChannels.erase(name);
+}
+
+// Other Methods
+void Client::sendReply(const std::string& message)
+{
+	_write_buffer += message + "\r\n";
+}
 
 bool Client::hasCompleteLine() const { return _read_buffer.find('\n') != std::string::npos; }
+
+bool Client::hasPasswordVerified() const { return _is_password_verified; }
+
+bool Client::isRegistered() const { return _is_registered; }
 
 std::string Client::popLine()
 {
@@ -91,9 +108,6 @@ std::string Client::popLine()
 		line.erase(line.size() - 1);
 	_read_buffer.erase(0, pos + 1);
 	return line;
-<<<<<<< Updated upstream
-}
-=======
 }
 
 void Client::updateLastActivity() { _lastActivity = std::time(NULL); _pingSent = false; }
@@ -150,4 +164,3 @@ void Client::broadcastQuit(const std::string &notice) {
 			}
 	}
 }
->>>>>>> Stashed changes

@@ -34,5 +34,5 @@ std::string makeCommand(const Client &client, const std::string &cmd, const std:
 
 void	handlePersonalPrivmsg(Client &sender, Client &recipient, const std::string &message)
 {
-	recipient.getWriteBuffer() += makeCommand(sender, "PRIVMSG", recipient.getNickname() + " :" + message);
+	recipient.sendReply(makeCommand(sender, "PRIVMSG", recipient.getNickname() + " :" + message));
 }

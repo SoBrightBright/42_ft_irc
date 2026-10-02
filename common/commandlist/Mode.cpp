@@ -1,11 +1,10 @@
 #include "Mode.hpp"
 
-#include "../network/Server.hpp"
-#include "../Client.hpp"
-#include "../parse/Message.hpp"
-#include "../common/IrcHelpers.hpp" // TODO: 폴더 구조 맞추고 수정할 것
-
-#include "../channel_ch/Channel.hpp"
+#include "../../Client.hpp"
+#include "../../network/Server.hpp"
+#include "../../parse/Message.hpp"
+#include "../../channel/Channel.hpp"
+#include "../../common/IrcHelpers.hpp"
 
 Mode::Mode() {}
 Mode::~Mode() {}
@@ -26,14 +25,18 @@ void	Mode::execute(Server &server, Client &client, const Message &msg)
 
 	if (params.size() < 1 || params[0].empty())
 	{
-		client.getWriteBuffer() += makeReply(Numeric::ERR_NEEDMOREPARAMS, targetName, "MODE :Not enough parameters");
+		client.sendReply(makeReply(Numeric::ERR_NEEDMOREPARAMS, targetName, "MODE :Not enough parameters"));
 		return ;
 	}
 
+	// irssi는 접속하자마자 사용자 모드 명령을 자동으로 보내는데, 우리 과제는 사용자 모드를 지원하지 않으므로 조용히 무시
+	if (params[0][0] != '#' && params[0][0] != '&')
+		return ;
+	
 	Channel *channel = server.findChannel(params[0]);
 	if (!channel)
 	{
-		client.getWriteBuffer() += makeReply(Numeric::ERR_NOSUCHCHANNEL, targetName, params[0] + " :No such channel");
+		client.sendReply(makeReply(Numeric::ERR_NOSUCHCHANNEL, targetName, params[0] + " :No such channel"));
 		return ;
 	}
 
@@ -47,6 +50,18 @@ void	Mode::execute(Server &server, Client &client, const Message &msg)
 			modeParams.push_back(params[i]);
 	}
 
+	if (modes.empty())
+	{
+		channel->handleMode(client, modes, modeParams);
+		return ;
+	}
+
+	if (!modes.empty() && modes[0] != '+' && modes[0] != '-')
+	{
+		client.sendReply(makeReply(Numeric::ERR_UNKNOWNMODE, targetName, std::string(1, modes[0]) + " :is unknown mode char to me for " + channel->getName()));
+		return ;
+	}
+	
 	// 'o'는 server에 접근해야 하기 때문에 channel 클래스 안이 아닌 여기서 처리
 
 	size_t paramIndex = 0;
@@ -73,7 +88,7 @@ void	Mode::execute(Server &server, Client &client, const Message &msg)
 		{
 			if (paramIndex >= modeParams.size())
 			{
-				client.getWriteBuffer() += makeReply(Numeric::ERR_NEEDMOREPARAMS, targetName, "MODE :Not enough parameters");
+				client.sendReply(makeReply(Numeric::ERR_NEEDMOREPARAMS, targetName, "MODE :Not enough parameters"));
 				continue ;
 			}
 			std::string nickname = modeParams[paramIndex++];
@@ -81,7 +96,7 @@ void	Mode::execute(Server &server, Client &client, const Message &msg)
 			if (target)
 				channel->handleModeOperator(enable, *target, client);
 			else
-				client.getWriteBuffer() += makeReply(Numeric::ERR_USERNOTINCHANNEL, targetName, nickname + " " + channel->getName() + " :They aren't on that channel");
+				client.sendReply(makeReply(Numeric::ERR_USERNOTINCHANNEL, targetName, nickname + " " + channel->getName() + " :They aren't on that channel"));
 			continue ;
 		}
 
@@ -89,6 +104,13 @@ void	Mode::execute(Server &server, Client &client, const Message &msg)
 
 		if (c == 'i' || c == 't' || c == 'k' || c == 'l')
 		{
+			bool needsParam = ((c == 'k' || c == 'l') && enable);
+			if (needsParam && paramIndex >= modeParams.size())
+			{
+				client.sendReply(makeReply(Numeric::ERR_NEEDMOREPARAMS, targetName, "MODE :Not enough parameters"));
+				continue ;
+			}
+
 			char sign = enable ? '+' : '-';
 			if (sign != lastAppliedSign)
 			{
@@ -96,24 +118,11 @@ void	Mode::execute(Server &server, Client &client, const Message &msg)
 				lastAppliedSign = sign;
 			}
 			filteredModes += c;
-	
-			if (c == 'k' || c == 'l')
-			{
-				if (enable)
-				{
-					if (paramIndex >= modeParams.size())
-					{
-						client.getWriteBuffer() += makeReply(Numeric::ERR_NEEDMOREPARAMS, targetName, "MODE :Not enough parameters");
-						continue ;
-					}
-					filteredParams.push_back(modeParams[paramIndex++]);
-				}
-			}
+			if (needsParam)
+				filteredParams.push_back(modeParams[paramIndex++]);
 		}
 		else
-		{
-			client.getWriteBuffer() += makeReply(Numeric::ERR_UNKNOWNMODE, targetName, std::string(1, c) + " :is unknown mode char to me for " + channel->getName());
-		}
+			client.sendReply(makeReply(Numeric::ERR_UNKNOWNMODE, targetName, std::string(1, c) + " :is unknown mode char to me for " + channel->getName()));
 	}
 	
 	if (!filteredModes.empty())

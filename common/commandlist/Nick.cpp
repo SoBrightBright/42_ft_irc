@@ -26,26 +26,23 @@ static bool	isValidNickname(const std::string &newer) {
 		return false;
 
 	char first = newer[0];
-	if (!std::isalpha(static_cast<unsigned char>(first) && !isSpecial(first)))
+	if (!std::isalpha(static_cast<unsigned char>(first)) && !isSpecial(first))
 		return false;
 
 	for (size_t	idx = 1; idx < newer.size(); ++idx) {
 		char c = newer[idx];
-		if (!std::isalnum(static_cast<unsigned char>(c) && !isSpecial(c)) && c != '-')
+		if (!std::isalnum(static_cast<unsigned char>(c)) && !isSpecial(c) && c != '-')
 			return false;
 	}
 	return true;
 }
 
-<<<<<<< Updated upstream
-=======
 // 10/02: 호스트를 IP 따라서.
 static std::string nickNotice(const std::string &old, const std::string &newer,
 							const std::string &user, const std::string &host) {
 	return (":" + old + "!" + user + "@" + host + " NICK :" + newer);
 }
 
->>>>>>> Stashed changes
 // execute 공통: parameter overcontain에 대해서 - 접근조차 없이 무시한다...
 // NICK <nickname> : 닉네임 설정/변경. 서버 내 중복 닉네임 체크 및 유효성 검사 후 적용
 void	Nick::execute(Server &server, Client &client, const Message &msg) {
@@ -53,24 +50,6 @@ void	Nick::execute(Server &server, Client &client, const Message &msg) {
 
 	if (params.empty() || params[0].empty()) {
 		client.sendReply(IrcReply::formatReply(IrcNumeric::ERR_NONICKNAMEGIVEN,
-<<<<<<< Updated upstream
-											   target, "No nickname given"));
-
-		const std::string &newNickname = params[0];
-		
-		if (!isValidNickname(newNickname)) {
-			client.sendReply(IrcReply::formatReplyWithParameter(IrcNumeric::ERR_ERRONEUSNICKNAME,
-								 					target, newNickname, "Erroneous nickname"));
-			return;
-		}
-
-		if (server.isNicknameTaken(newNickname)) {
-			client.sendReply(IrcReply::formatReplyWithParameter(IrcNumeric::ERR_ERRNICKNAMEINUSE,
-								 				target, newNickname, "Nickname is already in use"));
-		}
-
-		client.setNickname(newNickname);
-=======
 									IrcReply::targetname(client), "No nickname given"));
 		return;
 	}
@@ -101,6 +80,5 @@ void	Nick::execute(Server &server, Client &client, const Message &msg) {
 		client.broadcastNickChange(notice);
 	} else {
 		client.tryCompleteRegistration();
->>>>>>> Stashed changes
 	}
 }

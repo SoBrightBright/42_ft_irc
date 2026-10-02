@@ -19,7 +19,7 @@
 			Parser();
 			~Parser();
 
-			void	operate(Server &server, Client &client, const std::string &raw);
+			bool	operate(Server &server, Client &client, const std::string &raw);
 	};
 
 #endif
