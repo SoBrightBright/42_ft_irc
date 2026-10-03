@@ -14,6 +14,7 @@
 #include <unistd.h>
 #include <cerrno>
 #include <stdexcept>
+#include <cctype>
 #include "../Client.hpp"
 #include "../channel/Channel.hpp"
 #include "../parse/Message.hpp"

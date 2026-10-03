@@ -1,10 +1,8 @@
 #include "Server.hpp"
-#include <iostream>
-#include <cctype>
 
 std::string Server::getName()
 {
-    return "ft_irc";
+    return "ircserv";
 }
 
 static std::string  toLowerStr(const std::string& str)

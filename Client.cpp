@@ -8,41 +8,7 @@
 Client::Client(int fd):
 	_fd(fd), _nickname(""), _username(""), _realname(""), _is_authenticated(false),
 	_is_registered(false), _is_password_verified(false), _read_buffer(""), _write_buffer(""),
-	_lastActivity(std::time(NULL)), _pingSent(false) {}
-
-Client::Client(const Client& other)
-{
-	_fd = other._fd;
-	_nickname = other._nickname;
-	_username = other._username;
-	_realname = other._realname;
-	_is_authenticated = other._is_authenticated;
-	_is_registered = other._is_registered;
-	_is_password_verified = other._is_password_verified;
-	_read_buffer = other._read_buffer;
-	_write_buffer = other._write_buffer;
-	_lastActivity = other._lastActivity;
-	_pingSent = other._pingSent;
-}
-
-Client &Client::operator=(const Client& other)
-{
-	if (this != &other)
-	{
-		_fd = other._fd;
-		_nickname = other._nickname;
-		_username = other._username;
-		_realname = other._realname;
-		_is_authenticated = other._is_authenticated;
-		_is_registered = other._is_registered;
-		_is_password_verified = other._is_password_verified;
-		_read_buffer = other._read_buffer;
-		_write_buffer = other._write_buffer;
-		_lastActivity = other._lastActivity;
-		_pingSent = other._pingSent;
-	}
-	return *this;
-}
+	_connectedAt(std::time(NULL)), _lastActivity(std::time(NULL)), _pingSent(false) {}
 
 Client::~Client() {}
 
@@ -111,7 +77,8 @@ std::string Client::popLine()
 }
 
 void Client::updateLastActivity() { _lastActivity = std::time(NULL); _pingSent = false; }
-long Client::getIdleTime() const { return static_cast<long>(std::difftime(std::time(NULL), _lastActivity));}
+long Client::getIdleTime() const { return static_cast<long>(std::difftime(std::time(NULL), _lastActivity)); }
+long Client::getConnectTime() const { return static_cast<long>(std::difftime(std::time(NULL), _connectedAt)); }
 
 bool Client::isPingSent() const { return _pingSent; }
 void Client::setPingSent(bool status) { _pingSent = status; }
@@ -123,11 +90,11 @@ void Client::tryCompleteRegistration()
 	{
         _is_registered = true;
 		sendReply(IrcReply::formatReply(IrcNumeric::RPL_WELCOME, getNickname(),
-            "Welcome to the ft_irc Network, " + getNickname() + "!" + getUsername() + "@" + getIp()));
+            "Welcome to the ircserv Network, " + getNickname() + "!" + getUsername() + "@" + getIp()));
 		sendReply(IrcReply::formatReply(IrcNumeric::RPL_YOURHOST, getNickname(),
             "Your host is ircserv, running version 1.0"));
 		sendReply(IrcReply::formatReply(IrcNumeric::RPL_CREATED, getNickname(),
-			"This server was created for ft_irc"));
+			"This server was created for ircserv"));
 		// RFC2812 5.1: 004는 trailing 없이 공백 구분 4개 필드, 사용자모드 미지원.
 		// "o"는 자리값, 채널 모드는 itkol 지원
 		sendReply(":ircserv " + IrcNumeric::RPL_MYINFO + " " + getNickname() +

@@ -26,14 +26,13 @@ class Client
         std::string _read_buffer;        // 수신된 조각난 데이터를 모아두는 버퍼 (solee -> jimkim)
         std::string _write_buffer;       // 전송을 대기 중인 데이터를 모아두는 버퍼 (soolee -> solee)
 
+        std::time_t _connectedAt;
         std::time_t _lastActivity;      // 마지막 활동 시간 (초 단위)
         bool        _pingSent;
         
         // 들어가있는 채널 목록
     public:
         Client(int fd);
-        Client(const Client& other);
-        Client &operator=(const Client& other);
         ~Client();
 
         int             getFd() const;
@@ -65,6 +64,7 @@ class Client
 
         void        updateLastActivity();
         long        getIdleTime() const;
+        long        getConnectTime() const;
         // 10/02: 서로 연결이 되어있음을 관리하기 위해 ping 관련 처리 추가
         bool        isPingSent() const;
         void        setPingSent(bool status);

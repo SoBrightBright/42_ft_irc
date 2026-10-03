@@ -114,7 +114,7 @@ void Server::checkIdleClients()
     for (std::map<int, Client*>::iterator it = _clients.begin(); it != _clients.end(); ++it)
     {
         Client  *client = it->second;
-        long    idle = client->getIdleTime();
+        long    idle = it->second->getConnectTime();
 
         if (_closing.count(it->first))
         {
