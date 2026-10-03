@@ -63,7 +63,8 @@ void Server::run()
             {
                 if (errno == EINTR)
                     continue;
-                throw std::runtime_error("Poll failed");
+                std::cerr << "Poll failed" << std::endl;
+                break;
             }
 
             size_t count = _poll_fds.size();

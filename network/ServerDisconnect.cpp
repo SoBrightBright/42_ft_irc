@@ -29,6 +29,7 @@ void Server::disconnect(int client_fd, const std::string& reason)
     }
     _closing.erase(client_fd);
     close(client_fd);
+    _poll_fds[0].events = POLLIN;
 
     std::cout << "Client disconnected: FD " << client_fd << " (" << reason << ")" << std::endl;
 }

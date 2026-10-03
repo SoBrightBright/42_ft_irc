@@ -27,7 +27,11 @@ void Server::acceptNewClient()
     socklen_t client_len = sizeof(client_addr);
     int client_fd = accept(_server_fd, (struct sockaddr*)&client_addr, &client_len);
     if (client_fd < 0)
+    {
+        if (errno == EMFILE || errno == ENFILE)
+            _poll_fds[0].events = 0;
         return;
+    }
 
     try
     {
