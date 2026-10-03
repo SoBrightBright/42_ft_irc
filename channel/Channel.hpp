@@ -70,6 +70,7 @@ class Channel
 		void	handleMode(Client &user, const std::string &modes, const std::vector<std::string> &modeParams);
 		void	handleModeOperator(bool enable, Client &target, Client &executor);
 		void	handleChannelPrivmsg(Client &sender, const std::string &message);
+		void	removeQuitUser(Client &user);
 
 		// getters
 		const std::string 	&getName() const;

@@ -11,6 +11,14 @@ void Server::cleanupDisconnected()
 
 void Server::disconnect(int client_fd, const std::string& reason)
 {
+    std::string  cause = reason;
+    std::map<int, std::string>::iterator closing_it = _closing.find(client_fd);
+    if (closing_it != _closing.end())
+    {
+        cause = closing_it->second;
+        _closing.erase(closing_it);
+    }
+
     std::map<int, Client*>::iterator it = _clients.find(client_fd);
     if (it != _clients.end())
     {
@@ -27,21 +35,23 @@ void Server::disconnect(int client_fd, const std::string& reason)
             break;
         }
     }
-    _closing.erase(client_fd);
     close(client_fd);
     _poll_fds[0].events = POLLIN;
 
-    std::cout << "Client disconnected: FD " << client_fd << " (" << reason << ")" << std::endl;
+    std::cout << "Client disconnected: FD " << client_fd << " (" << cause << ")" << std::endl;
 }
 
 void Server::removeClientFromAllChannels(Client& client, const std::string& reason)
 {
+    if (client.isRegistered())
+        client.broadcastQuit(makeCommand(client, "QUIT", ":" + reason));
+
     std::vector<std::string> emptied;
     for (std::map<std::string, Channel*>::iterator it = _channels.begin(); it != _channels.end(); ++it)
     {
         if (!it->second->isMember(client))
             continue;
-        it->second->handlePart(client, reason);
+        it->second->removeQuitUser(client);
         if (it->second->isEmpty())
             emptied.push_back(it->first);
     }
