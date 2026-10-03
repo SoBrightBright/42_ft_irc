@@ -2,7 +2,7 @@
 
 #include <cctype>
 
-Message::Message() : existPrefix(false), existTrailing(false) {}
+Message::Message() : existPrefix(false) {}
 Message::~Message() {}
 Message::Message(const Message &obj) { (void)obj; }
 Message	&Message::operator=(const Message &obj) { (void)obj; return *this; }
@@ -20,18 +20,12 @@ void	Message::setCommand(const std::string &command) {
 void	Message::addParameter(const std::string &parameter) {
 	_parameter.push_back(parameter);
 }
-void	Message::setTrailing(const std::string &trailing) {
-	_trailing = trailing;
-	existTrailing = true;
-}
 
 const std::string	&Message::getPrefix() const { return _prefix; }
 const std::string 	&Message::getCommand() const { return _command; }
 const std::vector<std::string> 	&Message::getParameter() const { return _parameter; }
-const std::string	&Message::getTrailing() const { return _trailing; }
 
 bool	Message::hasPrefix() const { return existPrefix; }
-bool	Message::hasTrailing() const { return existTrailing;}
 
 // RFC에서는 파싱 실패 시의 대응을 규정하지 않고,
 // 실무적 관점에서 사소한 오류는 관대하게 무시하는 편.
@@ -91,7 +85,7 @@ bool	Message::spliter(const std::string &raw) {
 	if (pos >= searedSize)
 		return true;
 
-	// 10/02: 모든 파라미터가 :이 붙거나 붙지 않는 등의 입력을 다 허용하므로... 갈아엎었다.
+	// 10/02: 마지막 파라미터가 :이 붙거나 붙지 않는 등의 입력을 다 허용하므로... 갈아엎었다.
 	// get parameter & trailing
 	// RFC2812 2.3.1: middle과 trailing은 의미상 동등.
 	// RFC2812 2.3.1: middle이 이미 14개라면 15번째부터는 ':'가 없어도 trailing.
@@ -103,7 +97,6 @@ bool	Message::spliter(const std::string &raw) {
 				trail = seared.substr(pos + 1);
 			else
 				trail = seared.substr(pos);
-			setTrailing(trail);
 			addParameter(trail);
 			++paramCount;
 			break ;

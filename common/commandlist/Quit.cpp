@@ -6,6 +6,8 @@
 
 #include "../IrcHelpers.hpp"
 
+#include <vector>
+
 Quit::Quit() {}
 Quit::~Quit() {}
 Quit::Quit(const Quit &obj) { (void)obj; }
@@ -21,8 +23,10 @@ static std::string quitNotice(const std::string &nick, const std::string &user,
 // QUIT [:reason] : 연결 종료. 종료 사유 추출 및 실제 연결 종료+broadcast
 void	Quit::execute(Server &server, Client &client, const Message &msg) {
 	std::string reason = "Client Quit";
-	if (msg.hasTrailing())
-		reason = msg.getTrailing();
+	const std::vector<std::string> &params = msg.getParameter();
+
+	if (!params.empty() && !params[0].empty())
+		reason = params[0];
 	
 	if (client.isRegistered()) {
 		std::string notice = quitNotice(client.getNickname(), client.getUsername(), client.getIp(), reason);
