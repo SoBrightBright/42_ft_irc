@@ -28,6 +28,12 @@ Channel* Server::findOrCreateChannel(const std::string &name)
     return new_channel;
 }
 
+void Server::clearInvitedUsers(Channel *channel)
+{
+    for (std::map<int, Client*>::iterator it = _clients.begin(); it != _clients.end(); ++it)
+        it->second->removeInvitedChannel(channel);
+}
+
 void Server::deleteChannel(const std::string &name)
 {
     std::map<std::string, Channel*>::iterator it = _channels.find(tolower_name(name));
@@ -35,6 +41,7 @@ void Server::deleteChannel(const std::string &name)
     {
         Channel* channel = it->second;
         _channels.erase(it);
+        clearInvitedUsers(channel);
         delete channel;
     }
 }
