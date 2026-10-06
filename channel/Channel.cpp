@@ -39,7 +39,7 @@ Channel &Channel::operator=(const Channel &other)
 		_topicByOpOnly = other._topicByOpOnly;
 		_members = other._members; // std::vector도 =를 그냥 쓸 수 있음: vector 자체가 대입 연산자를 이미 가지고 있음. (string 대입처럼)
 		_operators = other._operators;
-		_invitedUserNicks = other._invitedUserNicks;
+		_invitedUsers = other._invitedUsers;
 	}
 	return *this;
 }
@@ -75,9 +75,9 @@ bool	Channel::isFull() const
 
 bool	Channel::isInvited(const Client &client) const
 {
-	for (size_t i = 0; i < _invitedUserNicks.size(); i++)
+	for (size_t i = 0; i < _invitedUsers.size(); i++)
 	{
-		if (_invitedUserNicks[i] == client.getNickname())
+		if (_invitedUsers[i] == &client)
 			return true;
 	}
 	return false;
@@ -122,6 +122,11 @@ void	Channel::removeMember(Client &client)
 	_members.erase(std::remove(_members.begin(), _members.end(), &client), _members.end());
 	removeOperator(client);
 	client.removeJoinedChannels(_name);
+}
+
+void	Channel::removeMemberfromInvitedUsers(Client &client)
+{
+	_invitedUsers.erase(std::remove(_invitedUsers.begin(), _invitedUsers.end(), &client), _invitedUsers.end());
 }
 
 void	Channel::addOperator(Client &client)
@@ -205,7 +210,8 @@ void	Channel::handleJoin(Client &user, const std::string &key)
 	}
 
 	// 한 번 사용된 초대가 재사용되지 않게끔 삭제
-	_invitedUserNicks.erase(std::remove(_invitedUserNicks.begin(), _invitedUserNicks.end(), user.getNickname()), _invitedUserNicks.end());
+	_invitedUsers.erase(std::remove(_invitedUsers.begin(), _invitedUsers.end(), &user), _invitedUsers.end());
+	user.removeInvitedChannel(this);
 
 	// 채널 생성자에게 operator 부여
 	bool isFirst = _members.empty();
@@ -324,7 +330,8 @@ void	Channel::handleInvite(Client &invitingUser, Client &invitedUser)
 		sendToOne(invitingUser, makeReply(Numeric::ERR_USERONCHANNEL, invitingUser.getNickname(), invitedUser.getNickname() + " " + _name + " :is already on channel"));
 		return ;
 	}
-	_invitedUserNicks.push_back(invitedUser.getNickname());
+	_invitedUsers.push_back(&invitedUser);
+	invitedUser.addInvitedChannel(this);
 	sendToOne(invitingUser, makeReply(Numeric::RPL_INVITING, invitingUser.getNickname(), _name + " " + invitedUser.getNickname()));
 	sendToOne(invitedUser, makeCommand(invitingUser, "INVITE", invitedUser.getNickname() + " " + _name));
 }
@@ -388,6 +395,11 @@ void	Channel::handleMode(Client &user, const std::string &modes, const std::vect
 {
 	if (modes.empty())
 	{
+		if (!isMember(user))
+		{
+			sendToOne(user, makeReply(Numeric::ERR_NOTONCHANNEL, user.getNickname(), _name + " :You're not on that channel"));
+			return ;
+		}
 		sendToOne(user, makeReply(Numeric::RPL_CHANNELMODEIS, user.getNickname(), _name + " " + buildModeString()));
 		return ;
 	}
@@ -402,6 +414,7 @@ void	Channel::handleMode(Client &user, const std::string &modes, const std::vect
 	std::string applied;
 	std::string appliedArgs;
 	char		lastSign = 0;
+	size_t		paramModeCount = 0;
 
 	for (size_t i = 0; i < modes.size(); i++)
 	{
@@ -416,6 +429,14 @@ void	Channel::handleMode(Client &user, const std::string &modes, const std::vect
 		{
 			enable = false;
 			continue ;
+		}
+
+		// Note that there is a maximum limit of three (3) changes per command for modes that take a parameter.
+		if (mode == 'o' || mode == 'k' || mode == 'l')
+		{
+			if (paramModeCount >= 3)
+				continue ;
+			paramModeCount++;
 		}
 
 		switch (mode)
@@ -451,10 +472,15 @@ void	Channel::handleMode(Client &user, const std::string &modes, const std::vect
 					appendApplied(applied, lastSign, true, 'k');
 					appliedArgs += " " + newKey;
 				}
-				else if (!_key.empty())
+				else
 				{
-					setModeKey(false, "");
-					appendApplied(applied, lastSign, false, 'k');
+					if (paramIndex < modeParams.size())
+						paramIndex++;
+					if (!_key.empty())
+					{
+						setModeKey(false, "");
+						appendApplied(applied, lastSign, false, 'k');
+					}
 				}
 				break ;
 
@@ -466,7 +492,10 @@ void	Channel::handleMode(Client &user, const std::string &modes, const std::vect
 					const std::string &raw = modeParams[paramIndex++];
 					int limit = 0;
 					if (!parseLimit(raw, limit))
+					{
+						sendToOne(user, makeReply(Numeric::ERR_NEEDMOREPARAMS, user.getNickname(), _name + " :Invalid limit value"));
 						break ;
+					}
 					setModeUserLimit(true, limit);
 					appendApplied(applied, lastSign, true, 'l');
 					appliedArgs += " " + raw;

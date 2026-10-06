@@ -57,6 +57,10 @@ void Server::removeClientFromAllChannels(Client& client, const std::string& reas
     }
     for (size_t i = 0; i < emptied.size(); ++i)
         deleteChannel(emptied[i]);
+
+    const std::vector<Channel *> &invited = client.getInvitedChannels();
+    for (size_t i = 0; i < invited.size(); ++i)
+        invited[i]->removeMemberfromInvitedUsers(client);
 }
 
 bool Server::isMarked(int client_fd) const

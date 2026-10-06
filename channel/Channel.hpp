@@ -22,7 +22,7 @@ class Channel
 		// user lists
 		std::vector<Client *> 		_members;
 		std::vector<Client *>		_operators;
-		std::vector<std::string>	_invitedUserNicks;
+		std::vector<Client *>		_invitedUsers;
 
 		// permission
 		bool						_inviteOnly;	// +i
@@ -70,7 +70,10 @@ class Channel
 		void	handleMode(Client &user, const std::string &modes, const std::vector<std::string> &modeParams);
 		void	handleModeOperator(bool enable, Client &target, Client &executor);
 		void	handleChannelPrivmsg(Client &sender, const std::string &message);
+
+		// user managements
 		void	removeQuitUser(Client &user);
+		void	removeMemberfromInvitedUsers(Client &client);
 
 		// getters
 		const std::string 	&getName() const;

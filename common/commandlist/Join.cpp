@@ -15,6 +15,21 @@ bool	Join::needLogin() const { return true; }
 
 // ( <channel> *( "," <channel> ) [ <key> *( "," <key> ) ] ) / "0"
 
+static bool	isValidChannelName(const std::string &name)
+{
+	if (name.empty() || name.size() > 50)
+		return false;
+	if (name[0] != '#' && name[0] != '&')
+		return false;
+	if (name.find(' ') != std::string::npos)
+		return false;
+	if (name.find(',') != std::string::npos)
+		return false;
+	if (name.find('\x07') != std::string::npos)
+		return false;
+	return true;
+}
+
 void	Join::execute(Server &server, Client &client, const Message &msg)
 {
 	const std::vector<std::string> &params = msg.getParameter();
@@ -28,16 +43,20 @@ void	Join::execute(Server &server, Client &client, const Message &msg)
 		return ;
 	}
 
+	// JOIN 0 시 모든 채널에서 나가기
 	if (params[0] == "0")
 	{
 		const std::map<std::string, Channel*> joined = client.getJoinedChannels();
 		for (std::map<std::string, Channel*>::const_iterator it = joined.begin(); it != joined.end(); ++it)
+		{
 			it->second->handlePart(client, "");
+			if (it->second->isEmpty())
+				server.deleteChannel(it->first);
+		}	
 		return ;
 	}
 
-	// 채널 이름 형식 검증
-	if (params[0].empty() || (params[0][0] != '#' && params[0][0] != '&'))
+	if (!isValidChannelName(params[0]))
 	{
 		client.sendReply(makeReply(Numeric::ERR_NOSUCHCHANNEL, target, params[0] + " :No such channel"));
 		return ;
@@ -53,5 +72,3 @@ void	Join::execute(Server &server, Client &client, const Message &msg)
 
 	channel->handleJoin(client, key);
 }
-
-// TODO: 멀티채널JOIN이 필요할까?

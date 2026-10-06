@@ -4,6 +4,7 @@
 # include <string>
 # include <map>
 # include <ctime>
+# include <vector>
 # include "common/IrcHelpers.hpp"
 
 class Channel;
@@ -22,6 +23,7 @@ class Client
         bool        _is_password_verified; // 비밀번호 검증 여부
 
         std::map<std::string, Channel*> _joinedChannels; // 클라이언트가 참여한 채널 목록
+        std::vector<Channel*> _invitedChannels; // 클라이언트가 초대된 채널 목록
 
         std::string _read_buffer;        // 수신된 조각난 데이터를 모아두는 버퍼 (solee -> jimkim)
         std::string _write_buffer;       // 전송을 대기 중인 데이터를 모아두는 버퍼 (soolee -> solee)
@@ -43,6 +45,7 @@ class Client
         std::string&    getWriteBuffer();
         std::string     getRealname() const;
         const std::map<std::string, Channel*>& getJoinedChannels();
+        const std::vector<Channel*> &getInvitedChannels() const;
 
         void        setIp(const std::string& ip);
         void        setNickname(const std::string& nickname);
@@ -53,6 +56,9 @@ class Client
 
         void        addJoinedChannels(const std::string& name, Channel* channel);
         void        removeJoinedChannels(const std::string& name);
+
+        void        addInvitedChannel(Channel *ch);
+        void        removeInvitedChannel(Channel *ch);
 
         bool        hasCompleteLine() const;
         void        sendReply(const std::string& message);

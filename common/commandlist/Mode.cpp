@@ -56,6 +56,12 @@ void	Mode::execute(Server &server, Client &client, const Message &msg)
 		return ;
 	}
 
+	if (!channel->isOperator(client))
+	{
+		client.sendReply(makeReply(Numeric::ERR_CHANOPRIVSNEEDED, targetName, channel->getName() + " :You're not channel operator"));
+		return ;
+	}
+
 	if (!modes.empty() && modes[0] != '+' && modes[0] != '-')
 	{
 		client.sendReply(makeReply(Numeric::ERR_UNKNOWNMODE, targetName, std::string(1, modes[0]) + " :is unknown mode char to me for " + channel->getName()));

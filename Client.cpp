@@ -29,6 +29,8 @@ std::string Client::getRealname() const { return _realname; }
 
 const std::map<std::string, Channel*>& Client::getJoinedChannels() { return _joinedChannels; }
 
+const std::vector<Channel*> &Client::getInvitedChannels() const { return _invitedChannels; }
+
 // Setters
 void Client::setIp(const std::string& ip) { _ip = ip; }
 
@@ -52,6 +54,17 @@ void Client::addJoinedChannels(const std::string& name, Channel* channel)
 void Client::removeJoinedChannels(const std::string& name)
 {
 	_joinedChannels.erase(name);
+}
+
+// InvitedChannels
+void Client::addInvitedChannel(Channel *ch)
+{
+	_invitedChannels.push_back(ch);
+}
+
+void Client::removeInvitedChannel(Channel *ch)
+{
+	_invitedChannels.erase(std::remove(_invitedChannels.begin(), _invitedChannels.end(), ch), _invitedChannels.end());
 }
 
 // Other Methods
