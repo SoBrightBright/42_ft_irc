@@ -2,13 +2,14 @@
 #include "channel/Channel.hpp"
 #include <iostream>
 #include <string>
+#include <algorithm>
 #include <set>
 
 // Constructors and Destructors
 Client::Client(int fd):
-	_fd(fd), _nickname(""), _username(""), _realname(""), _is_authenticated(false),
+	_fd(fd), _nickname(""), _username(""), _realname(""),
 	_is_registered(false), _is_password_verified(false), _read_buffer(""), _write_buffer(""),
-	_connectedAt(std::time(NULL)), _lastActivity(std::time(NULL)), _pingSent(false) {}
+	_connectedAt(std::time(NULL)), _lastActivity(std::time(NULL)), _pingSent(false), _closingSince(0) {}
 
 Client::~Client() {}
 
@@ -95,6 +96,13 @@ long Client::getConnectTime() const { return static_cast<long>(std::difftime(std
 
 bool Client::isPingSent() const { return _pingSent; }
 void Client::setPingSent(bool status) { _pingSent = status; }
+void Client::markClosing() { _closingSince =  std::time(NULL); }
+long Client::getClosingTime() const
+{
+	if (_closingSince == 0)
+		return 0;
+	return (static_cast<long>(std::difftime(std::time(NULL), _closingSince)));
+}
 
 // 10/02: 환영 메시지는 001~004 전부 필수라고 제안받음.
 void Client::tryCompleteRegistration()
@@ -115,7 +123,14 @@ void Client::tryCompleteRegistration()
     }
 }
 
-void Client::broadcastNickChange(const std::string &notice) {
+bool Client::isMissingPassword() const
+{
+	return (!_is_registered && !_is_password_verified
+			&& !_nickname.empty() && !_username.empty());
+}
+
+void Client::broadcastNickChange(const std::string &notice)
+{
 	sendReply(notice);
 
 	std::set<Client *> notified;

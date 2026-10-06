@@ -108,6 +108,9 @@ void Server::receiveData(int client_fd)
         if (line.empty())
             continue;
 
+        // 잘 처리되는지 확인하는 (서버 수신) 테스터 코드.
+        std::cout << "[recv fd=" << client_fd << "] " << line << std::endl;
+
         if (!_parser.operate(*this, *client, line))
             std::cerr << "Failed to parse message: " << line << std::endl;
     }
@@ -122,6 +125,9 @@ void Server::sendData(int client_fd)
     std::string& write_buffer = it->second->getWriteBuffer();
     if (write_buffer.empty())
         return;
+
+    // 잘 처리되는지 확인하는 (서버 발신) 테스터 코드
+    std::cout << "[send fd=" << client_fd << "]\n" << write_buffer << std::endl;
 
     ssize_t bytes_sent = send(client_fd, write_buffer.c_str(), write_buffer.size(), 0);
     if (bytes_sent < 0)

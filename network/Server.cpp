@@ -114,20 +114,20 @@ void Server::checkIdleClients()
     for (std::map<int, Client*>::iterator it = _clients.begin(); it != _clients.end(); ++it)
     {
         Client  *client = it->second;
-        long    idle = it->second->getConnectTime();
 
         if (_closing.count(it->first))
         {
-            if (idle > 5)
+            if (client->getClosingTime() > 5)
                 markForDisconnection(it->first, _closing[it->first]);
             continue;
         }
         if (!client->isRegistered()) {
-            if (idle > TIMEOUT_REGISTRATION)
+            if (client->getClosingTime() > TIMEOUT_REGISTRATION)
 				markForDisconnection(it->first, "Registration timeout");
 			continue ;
         }
 
+        long    idle = client->getIdleTime();
         if (idle > TIMEOUT_SECONDS)
             markForDisconnection(it->first, "Ping timeout");
         else if (idle > TIMEOUT_SECONDS / 2 && !client->isPingSent()) {

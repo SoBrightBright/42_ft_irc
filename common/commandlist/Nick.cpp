@@ -78,7 +78,13 @@ void	Nick::execute(Server &server, Client &client, const Message &msg) {
 	
 		std::string	notice = nickNotice(oldNickname, newNickname, client.getUsername(), client.getIp());
 		client.broadcastNickChange(notice);
-	} else {
-		client.tryCompleteRegistration();
+		return;
 	}
+	
+	client.tryCompleteRegistration();
+	if (client.isMissingPassword()) {
+		client.sendReply(IrcReply::formatReply(IrcNumeric::ERR_PASSWDMISMATCH,
+											   "*", "Password incorrect"));
+		server.disconnectClient(client, "Bad Password");
+	}	
 }

@@ -22,7 +22,7 @@ void Server::disconnect(int client_fd, const std::string& reason)
     std::map<int, Client*>::iterator it = _clients.find(client_fd);
     if (it != _clients.end())
     {
-        removeClientFromAllChannels(*it->second, reason);
+        removeClientFromAllChannels(*it->second, cause);
         delete it->second;
         _clients.erase(it);
     }
@@ -58,7 +58,7 @@ void Server::removeClientFromAllChannels(Client& client, const std::string& reas
     for (size_t i = 0; i < emptied.size(); ++i)
         deleteChannel(emptied[i]);
 
-    const std::vector<Channel *> &invited = client.getInvitedChannels();
+    const std::vector<Channel *> invited = client.getInvitedChannels();
     for (size_t i = 0; i < invited.size(); ++i)
         invited[i]->removeMemberfromInvitedUsers(client);
 }
@@ -78,4 +78,5 @@ void Server::disconnectAfterFlush(Client &c, const std::string &reason)
 {
     c.sendReply("ERROR :Closing Link: " + c.getIp() + " (" + reason + ")");
     _closing[c.getFd()] = reason;
+    c.markClosing();
 }

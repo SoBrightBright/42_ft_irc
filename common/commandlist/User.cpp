@@ -37,4 +37,10 @@ void	User::execute(Server &server, Client &client, const Message &msg) {
 	client.setUsername(params[0]);
 	client.setRealname(params[3]);
 	client.tryCompleteRegistration();
+
+	if (client.isMissingPassword()) {
+		client.sendReply(IrcReply::formatReply(IrcNumeric::ERR_PASSWDMISMATCH,
+											   "*", "Password incorrect"));
+		server.disconnectClient(client, "Bad Password");
+	}	
 }

@@ -18,7 +18,6 @@ class Client
         std::string _username;           // USER 명령어로 설정할 유저네임
         std::string _realname;           // USER 명령어로 설정할 실명
 
-        bool        _is_authenticated;   // PASS 명령어를 통한 인증 완료 여부
         bool        _is_registered;      // NICK과 USER 설정까지 모두 마쳤는지 여부
         bool        _is_password_verified; // 비밀번호 검증 여부
 
@@ -31,6 +30,7 @@ class Client
         std::time_t _connectedAt;
         std::time_t _lastActivity;      // 마지막 활동 시간 (초 단위)
         bool        _pingSent;
+        std::time_t _closingSince;
         
         // 들어가있는 채널 목록
     public:
@@ -71,10 +71,15 @@ class Client
         void        updateLastActivity();
         long        getIdleTime() const;
         long        getConnectTime() const;
+
         // 10/02: 서로 연결이 되어있음을 관리하기 위해 ping 관련 처리 추가
         bool        isPingSent() const;
         void        setPingSent(bool status);
+        void        markClosing();
+        long        getClosingTime() const;
+
         void        tryCompleteRegistration();
+        bool        isMissingPassword() const;
 
         void        broadcastNickChange(const std::string &notice);
         void        broadcastQuit(const std::string &notice);
