@@ -29,13 +29,7 @@ void	Pass::execute(Server &server, Client &client, const Message &msg) {
 							IrcReply::targetname(client), "You may not reregister"));
 		return;
 	}
-	
-	if (!server.checkPassword(params[0])) {
-			client.sendReply(IrcReply::formatReply(IrcNumeric::ERR_PASSWDMISMATCH,
-							IrcReply::targetname(client), "Password Incorrect"));
-		return;	
-	}
 
-	client.setPasswordVerified(true);
+	client.setPasswordVerified(server.checkPassword(params[0]));
 	client.tryCompleteRegistration();
 }
