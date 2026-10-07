@@ -1,8 +1,5 @@
 #include "./network/Server.hpp"
-#include <iostream>
-#include <string>
-#include <cstdlib>
-#include <csignal>
+#include <sys/socket.h>
 
 volatile std::sig_atomic_t g_stop = 0;
 static void onSignal(int) {g_stop = 1;}

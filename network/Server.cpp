@@ -1,4 +1,5 @@
 #include "Server.hpp"
+#include <sys/socket.h>
 
 Server::Server(int port, const std::string& password)
     : _port(port), _server_fd(-1), _password(password) {}

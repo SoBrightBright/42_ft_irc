@@ -1,10 +1,6 @@
 #include "Server.hpp"
-#include <iostream>
 #include <sys/socket.h>
 #include <netinet/in.h>
-#include <fcntl.h>
-#include <unistd.h>
-#include <cerrno>
 
 static void setNonBlocking(int fd)
 {

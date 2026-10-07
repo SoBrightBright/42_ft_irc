@@ -12,7 +12,7 @@ class Channel;
 class Client
 {
     private:
-        int         _fd;                 // 클라이언트의 소켓 파일 디스크립터
+        int         _fd;            // 클라이언트의 소켓 파일 디스크립터
         std::string _ip;                 // 클라이언트의 IP 주소
         std::string _nickname;           // NICK 명령어로 설정할 닉네임
         std::string _username;           // USER 명령어로 설정할 유저네임

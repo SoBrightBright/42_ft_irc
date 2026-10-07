@@ -107,20 +107,20 @@ long Client::getClosingTime() const
 // 10/02: 환영 메시지는 001~004 전부 필수라고 제안받음.
 void Client::tryCompleteRegistration()
 {
-    if (!isRegistered() && hasPasswordVerified() && !getNickname().empty() && !getUsername().empty())
+	if (!isRegistered() && hasPasswordVerified() && !getNickname().empty() && !getUsername().empty())
 	{
-        _is_registered = true;
+		_is_registered = true;
 		sendReply(IrcReply::formatReply(IrcNumeric::RPL_WELCOME, getNickname(),
-            "Welcome to the ircserv Network, " + getNickname() + "!" + getUsername() + "@" + getIp()));
+			"Welcome to the ircserv Network, " + getNickname() + "!" + getUsername() + "@" + getIp()));
 		sendReply(IrcReply::formatReply(IrcNumeric::RPL_YOURHOST, getNickname(),
-            "Your host is ircserv, running version 1.0"));
+			"Your host is ircserv, running version 1.0"));
 		sendReply(IrcReply::formatReply(IrcNumeric::RPL_CREATED, getNickname(),
 			"This server was created for ircserv"));
 		// RFC2812 5.1: 004는 trailing 없이 공백 구분 4개 필드, 사용자모드 미지원.
 		// "o"는 자리값, 채널 모드는 itkol 지원
 		sendReply(":ircserv " + IrcNumeric::RPL_MYINFO + " " + getNickname() +
 			" ircserv 1.0 o itkol");
-    }
+	}
 }
 
 bool Client::isMissingPassword() const

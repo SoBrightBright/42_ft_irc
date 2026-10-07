@@ -5,10 +5,10 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <cstdlib>
 #include <poll.h>
 #include <arpa/inet.h>
 #include <csignal>
-#include <sys/socket.h>
 #include <netinet/in.h>
 #include <fcntl.h>
 #include <unistd.h>
@@ -53,31 +53,31 @@ class Server
 		void	checkIdleClients();
 
 
-		void    cleanupDisconnected();
+		void	cleanupDisconnected();
 		void	disconnect(int client_fd, const std::string& reason);
-		void    removeClientFromAllChannels(Client&, const std::string& reason);
+		void	removeClientFromAllChannels(Client&, const std::string& reason);
 
-		bool    isMarked(int client_fd) const;
-		void    markForDisconnection(int client_fd, const std::string& reason);
+		bool	isMarked(int client_fd) const;
+		void	markForDisconnection(int client_fd, const std::string& reason);
 		void	disconnectAfterFlush(Client &c, const std::string &reason);
 
 	public:
 		Server(int port, const std::string& password);
 		~Server();
 
-		void    init(); 
-		void    run();
+		void		init(); 
+		void		run();
 
-		std::string getName();
-		bool    isNicknameTaken(const std::string& nickname, const Client *self);
-		bool    checkPassword(const std::string& password) const;
-		void    disconnectClient(Client&, const std::string& reason);
+		std::string	getName();
+		bool		isNicknameTaken(const std::string& nickname, const Client *self);
+		bool		checkPassword(const std::string& password) const;
+		void		disconnectClient(Client&, const std::string& reason);
 
-		Channel* findChannel(const std::string &name); // name으로 Channel*을 찾아서 반환, 없으면 NULL 반환
-		Channel* findOrCreateChannel(const std::string &name); // JOIN에서 사용, name으로 찾아보고 없으면 name이란 채널을 새로 만듦
-		void clearInvitedUsers(Channel *channel);
-		void    deleteChannel(const std::string &name); // name으로 찾아서 삭제, 없으면 NULL 반환
-		Client* findClientByNickname(const std::string &nickname); // 지금까지 몇 번 말씀드렸던 것!! nickname으로 Client * 찾아서 반환. 없으면 NULL 반환
-	};
+		Channel*	findChannel(const std::string &name); // name으로 Channel*을 찾아서 반환, 없으면 NULL 반환
+		Channel*	findOrCreateChannel(const std::string &name); // JOIN에서 사용, name으로 찾아보고 없으면 name이란 채널을 새로 만듦
+		void		clearInvitedUsers(Channel *channel);
+		void		deleteChannel(const std::string &name); // name으로 찾아서 삭제, 없으면 NULL 반환
+		Client*		findClientByNickname(const std::string &nickname); // 지금까지 몇 번 말씀드렸던 것!! nickname으로 Client * 찾아서 반환. 없으면 NULL 반환
+};
 
 #endif
