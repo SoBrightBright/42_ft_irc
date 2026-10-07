@@ -71,7 +71,10 @@ void Client::removeInvitedChannel(Channel *ch)
 // Other Methods
 void Client::sendReply(const std::string& message)
 {
-	_write_buffer += message + "\r\n";
+	if (message.size() > 510)
+		_write_buffer += message.substr(0, 510) + "\r\n";
+	else
+		_write_buffer += message + "\r\n";
 }
 
 bool Client::hasCompleteLine() const { return _read_buffer.find('\n') != std::string::npos; }

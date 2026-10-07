@@ -1,16 +1,9 @@
 #include "Server.hpp"
-
-std::string tolower_name(const std::string &name)
-{
-    std::string lower_name = name;
-    for (size_t i = 0; i < lower_name.length(); ++i)
-        lower_name[i] = std::tolower(static_cast<unsigned char>(lower_name[i]));
-    return (lower_name);
-}
+#include "../common/IrcHelpers.hpp"
 
 Channel* Server::findChannel(const std::string &name)
 {
-    std::map<std::string, Channel*>::iterator it = _channels.find(tolower_name(name));
+    std::map<std::string, Channel*>::iterator it = _channels.find(IrcText::toLower(name));
     if (it != _channels.end())
         return it->second;
     return NULL;
@@ -18,7 +11,7 @@ Channel* Server::findChannel(const std::string &name)
 
 Channel* Server::findOrCreateChannel(const std::string &name)
 {
-    std::string key = tolower_name(name);
+    std::string key = IrcText::toLower(name);
     Channel* channel = findChannel(key);
     if (channel)
         return channel;
@@ -36,7 +29,7 @@ void Server::clearInvitedUsers(Channel *channel)
 
 void Server::deleteChannel(const std::string &name)
 {
-    std::map<std::string, Channel*>::iterator it = _channels.find(tolower_name(name));
+    std::map<std::string, Channel*>::iterator it = _channels.find(IrcText::toLower(name));
     if (it != _channels.end())
     {
         Channel* channel = it->second;

@@ -37,4 +37,8 @@
 		std::string	formatCommand(const std::string &command, const std::string &trailing);
 	}
 
+	namespace IrcText {
+		std::string	toLower(const std::string &str);
+	}
+
 #endif

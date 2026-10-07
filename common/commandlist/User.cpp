@@ -15,8 +15,7 @@ User	&User::operator=(const User &obj) { (void)obj; return *this; }
 
 bool	User::needLogin() const { return false; }
 
-// 10/02: 메세지 파라미터 변경으로 인한 코드 수정 & 함수 통일
-// USER <username> <mode> <unused> :<realname>: 유저네임/실명 등록. 이미 등록된 클라이언트 재시도 차단, username과 realname 저장
+// `USER <username> <mode> <unused> :<realname>`: 유저네임/실명 등록. 이미 등록된 클라이언트 재시도 차단, username과 realname 저장
 void	User::execute(Server &server, Client &client, const Message &msg) {
 	(void)server;
 
@@ -32,6 +31,14 @@ void	User::execute(Server &server, Client &client, const Message &msg) {
 		client.sendReply(IrcReply::formatReply(IrcNumeric::ERR_ALREADYREGISTERED,
 										IrcReply::targetname(client), "You may not reregister"));
 		return ;
+	}
+
+	// RFC2812 2.3.1: user에는 '@'가 들어갈 수 없다.
+	// RFC에는 '잘못된 username' 전용 응답이 없으므로 461 error로 거부.
+	if (params[0].find('@') != std::string::npos) {
+		client.sendReply(IrcReply::formatReplyWithParameter(IrcNumeric::ERR_NEEDMOREPARAMS,
+										IrcReply::targetname(client), "USER", "Not enough parameters"));
+		return;
 	}
 
 	client.setUsername(params[0]);
