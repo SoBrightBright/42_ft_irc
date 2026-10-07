@@ -39,7 +39,12 @@ void	Kick::execute(Server &server, Client &client, const Message &msg)
 	Client *targetClient = server.findClientByNickname(params[1]);
 	if (!targetClient)
 	{
-		client.sendReply(makeReply(Numeric::ERR_USERNOTINCHANNEL, target, params[1] + " " + params[0] + " :They aren't on that channel"));
+		if (!channel->isMember(client))
+			client.sendReply(makeReply(Numeric::ERR_NOTONCHANNEL, target, channel->getName() + " :You're not on that channel"));
+		else if (!channel->isOperator(client))
+			client.sendReply(makeReply(Numeric::ERR_CHANOPRIVSNEEDED, target, channel->getName() + " :You're not channel operator"));
+		else		
+			client.sendReply(makeReply(Numeric::ERR_USERNOTINCHANNEL, target, params[1] + " " + params[0] + " :They aren't on that channel"));
 		return ;
 	}
 
