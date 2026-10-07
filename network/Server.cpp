@@ -122,7 +122,7 @@ void Server::checkIdleClients()
             continue;
         }
         if (!client->isRegistered()) {
-            if (client->getClosingTime() > TIMEOUT_REGISTRATION)
+            if (client->getConnectTime() > TIMEOUT_REGISTRATION)
 				markForDisconnection(it->first, "Registration timeout");
 			continue ;
         }
