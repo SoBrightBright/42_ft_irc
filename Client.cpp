@@ -71,10 +71,19 @@ void Client::removeInvitedChannel(Channel *ch)
 // Other Methods
 void Client::sendReply(const std::string& message)
 {
-	if (message.size() > 510)
-		_write_buffer += message.substr(0, 510) + "\r\n";
-	else
+	if (message.size() <= 510)
+	{
 		_write_buffer += message + "\r\n";
+		return ;
+	}
+
+	// UTF-8에서 글자의 2번째 바이트부터는 모두 10xxxxxx 모양이다. (한글은 3바이트)
+	// 자를 자리(message[cut])가 그런 바이트라면 글자 한가운데이므로, 글자 시작까지 물러난다.
+	// UTF-8 한 글자는 최대 4바이트라서 최대 3바이트만 물러난다. (UTF-8이 아닌 입력 대비)
+	size_t	cut = 510;
+	for (int back = 0; back < 3 && (static_cast<unsigned char>(message[cut]) & 0xC0) == 0x80; ++back)
+		--cut;
+	_write_buffer += message.substr(0, cut) + "\r\n";
 }
 
 bool Client::hasCompleteLine() const { return _read_buffer.find('\n') != std::string::npos; }
