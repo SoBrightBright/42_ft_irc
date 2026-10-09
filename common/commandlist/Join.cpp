@@ -58,7 +58,7 @@ void	Join::execute(Server &server, Client &client, const Message &msg)
 
 	if (!isValidChannelName(params[0]))
 	{
-		client.sendReply(makeReply(Numeric::ERR_NOSUCHCHANNEL, target, params[0] + " :No such channel"));
+		client.sendReply(makeReply(Numeric::ERR_BADCHANMASK, target, params[0] + " :Bad Channel Mask"));
 		return ;
 	}
 	

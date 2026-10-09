@@ -26,9 +26,12 @@ namespace Numeric
 	const int	ERR_KEYSET = 467;
 	const int	ERR_INVITEONLYCHAN = 473;
 	const int	ERR_BADCHANNELKEY = 475;
+	const int	ERR_BADCHANMASK = 476;
 	const int	ERR_CHANNELISFULL = 471;
 	const int	ERR_UNKNOWNMODE = 472;
 	const int	ERR_CHANOPRIVSNEEDED = 482;
+	const int	ERR_INVALIDKEY = 525;
+	const int	ERR_INVALIDMODEPARAM = 696;
 };
 
 std::string		makeReply(int code, const std::string &nick, const std::string &text);

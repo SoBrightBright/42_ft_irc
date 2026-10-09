@@ -67,10 +67,9 @@ void	Mode::execute(Server &server, Client &client, const Message &msg)
 		client.sendReply(makeReply(Numeric::ERR_UNKNOWNMODE, targetName, std::string(1, modes[0]) + " :is unknown mode char to me for " + channel->getName()));
 		return ;
 	}
-	
-	// 'o'는 server에 접근해야 하기 때문에 channel 클래스 안이 아닌 여기서 처리
 
 	size_t paramIndex = 0;
+	size_t paramModeCount = 0;
 	bool enable = true;
 	std::string filteredModes;
 	std::vector<std::string> filteredParams;
@@ -90,45 +89,62 @@ void	Mode::execute(Server &server, Client &client, const Message &msg)
 			continue ;
 		}
 
-		if (c == 'o')
+		if (c != 'o' && c != 'i' && c != 't' && c != 'k' && c != 'l')
 		{
-			if (paramIndex >= modeParams.size())
+			client.sendReply(makeReply(Numeric::ERR_UNKNOWNMODE, targetName, std::string(1, c) + " :is unknown mode char to me for " + channel->getName()));
+			continue ;
+		}
+
+		// 이 모드가 파라미터를 받는지 결정 (-k는 irssi가 키를 보내므로 있으면 소비)
+		bool takesParam = (c == 'o') || (c == 'k') || (c == 'l' && enable);
+		bool requiresParam = (c == 'o') || (enable && (c == 'k' || c == 'l'));
+		std::string param;
+		bool hasParam = false;
+
+		if (takesParam)
+		{
+			if (paramIndex < modeParams.size())
+			{
+				param = modeParams[paramIndex++];
+				hasParam = true;
+			}
+			else if (requiresParam)
 			{
 				client.sendReply(makeReply(Numeric::ERR_NEEDMOREPARAMS, targetName, "MODE :Not enough parameters"));
-				continue ;
+				continue ;			
 			}
-			std::string nickname = modeParams[paramIndex++];
-			Client *target = server.findClientByNickname(nickname);
+		}
+
+		// 파라미터를 소비한 뒤에 3개 제한 적용
+		if (c == 'o' || c == 'k' || c == 'l')
+		{
+			if (paramModeCount >= 3)
+				continue ;
+			paramModeCount++;
+		}
+
+		// 'o'는 server에 접근해야 하기 때문에 channel 클래스 안이 아닌 여기서 처리
+		if (c == 'o')
+		{
+			Client *target = server.findClientByNickname(param);
 			if (target)
 				channel->handleModeOperator(enable, *target, client);
 			else
-				client.sendReply(makeReply(Numeric::ERR_USERNOTINCHANNEL, targetName, nickname + " " + channel->getName() + " :They aren't on that channel"));
+				// RFC의 MODE 목록에 401이 없어 441을 사용
+				client.sendReply(makeReply(Numeric::ERR_USERNOTINCHANNEL, targetName, param + " " + channel->getName() + " :They aren't on that channel"));
 			continue ;
 		}
 
 		// 기능적으로 유의미한 부호만 저장
-
-		if (c == 'i' || c == 't' || c == 'k' || c == 'l')
+		char sign = enable ? '+' : '-';
+		if (sign != lastAppliedSign)
 		{
-			bool needsParam = ((c == 'k' || c == 'l') && enable);
-			if (needsParam && paramIndex >= modeParams.size())
-			{
-				client.sendReply(makeReply(Numeric::ERR_NEEDMOREPARAMS, targetName, "MODE :Not enough parameters"));
-				continue ;
-			}
-
-			char sign = enable ? '+' : '-';
-			if (sign != lastAppliedSign)
-			{
-				filteredModes += sign;
-				lastAppliedSign = sign;
-			}
-			filteredModes += c;
-			if (needsParam)
-				filteredParams.push_back(modeParams[paramIndex++]);
+			filteredModes += sign;
+			lastAppliedSign = sign;
 		}
-		else
-			client.sendReply(makeReply(Numeric::ERR_UNKNOWNMODE, targetName, std::string(1, c) + " :is unknown mode char to me for " + channel->getName()));
+		filteredModes += c;
+		if (enable && hasParam && (c == 'k' || c == 'l'))
+			filteredParams.push_back(param); // -k의 키는 버림
 	}
 	
 	if (!filteredModes.empty())

@@ -221,20 +221,32 @@ void	Channel::handleJoin(Client &user, const std::string &key)
 	
 	// 메시지 출력
 	sendToAll(makeCommand(user, "JOIN", _name));
+
+	// // 토픽 출력
 	if (_topic.size() == 0)
 		sendToOne(user, makeReply(Numeric::RPL_NOTOPIC, user.getNickname(), _name + " :No topic is set"));
 	else
 		sendToOne(user, makeReply(Numeric::RPL_TOPIC, user.getNickname(), _name + " :" + _topic));
-	std::string users;	
+	
+	// // 유저 목록 출력
+	std::string prefix = makeReply(Numeric::RPL_NAMREPLY, user.getNickname(), "= " + _name + " :");
+	size_t limit = 510 - prefix.size();
+	
+	std::string users;
 	for (size_t i = 0; i < _members.size(); i++)
 	{
-		if (i > 0)
+		std::string entry = (isOperator(*_members[i]) ? "@" : "") + _members[i]->getNickname();
+		if (!users.empty() && users.size() + 1 + entry.size() > limit)
+		{
+			sendToOne(user, prefix + users);
+			users.clear();
+		}
+		if (!users.empty())
 			users += " ";
-		if (isOperator(*_members[i]))
-			users += "@";
-		users += _members[i]->getNickname();
+		users += entry;
 	}
-	sendToOne(user, makeReply(Numeric::RPL_NAMREPLY, user.getNickname(), "= " + _name + " :" + users));
+	if (!users.empty())
+		sendToOne(user, prefix + users);
 	sendToOne(user, makeReply(Numeric::RPL_ENDOFNAMES, user.getNickname(), _name + " :End of /NAMES list"));
 }
 
@@ -285,6 +297,16 @@ void	Channel::handleKick(Client &kickingUser, Client &kickedUser, const std::str
 	removeMember(kickedUser);
 }
 
+static std::string truncateUtf8(const std::string &s, size_t maxBytes)
+{
+	if (s.size() <= maxBytes)
+		return s;
+	size_t cut = maxBytes;
+	while (cut > 0 && (static_cast<unsigned char>(s[cut]) & 0xC0) == 0x80)
+		--cut;
+	return s.substr(0, cut);
+}
+
 void	Channel::handleTopic(Client &user, const std::string &topic, bool hasTopicParam)
 {
 	if (!isMember(user))
@@ -305,7 +327,7 @@ void	Channel::handleTopic(Client &user, const std::string &topic, bool hasTopicP
 		sendToOne(user, makeReply(Numeric::ERR_CHANOPRIVSNEEDED, user.getNickname(), _name + " :You're not channel operator"));
 		return ;
 	}
-	_topic = topic;
+	_topic = truncateUtf8(topic, 300);
 	sendToAll(makeCommand(user, "TOPIC", _name + " :" + _topic));
 }
 
@@ -391,6 +413,19 @@ static bool parseLimit(const std::string &str, int &out)
 	return out > 0;
 }
 
+static bool	isValidKey(const std::string &key)
+{
+	if (key.empty() || key.size() > 42)
+		return false;
+	for (size_t i = 0; i < key.size(); i++)
+	{
+		unsigned char c = key[i];
+		if (c <= ' ' || c == 0x7f || c == ',')
+			return false;
+	}
+	return true;
+}
+
 void	Channel::handleMode(Client &user, const std::string &modes, const std::vector<std::string> &modeParams)
 {
 	if (modes.empty())
@@ -414,7 +449,6 @@ void	Channel::handleMode(Client &user, const std::string &modes, const std::vect
 	std::string applied;
 	std::string appliedArgs;
 	char		lastSign = 0;
-	size_t		paramModeCount = 0;
 
 	for (size_t i = 0; i < modes.size(); i++)
 	{
@@ -429,14 +463,6 @@ void	Channel::handleMode(Client &user, const std::string &modes, const std::vect
 		{
 			enable = false;
 			continue ;
-		}
-
-		// Note that there is a maximum limit of three (3) changes per command for modes that take a parameter.
-		if (mode == 'o' || mode == 'k' || mode == 'l')
-		{
-			if (paramModeCount >= 3)
-				continue ;
-			paramModeCount++;
 		}
 
 		switch (mode)
@@ -463,6 +489,12 @@ void	Channel::handleMode(Client &user, const std::string &modes, const std::vect
 					if (paramIndex >= modeParams.size())
 						break ;
 					const std::string &newKey = modeParams[paramIndex++];
+					if (!isValidKey(newKey))
+					{
+						// RFC상에서 정의되지 않아 modern IRC docs의 정의를 가져옴
+						sendToOne(user, makeReply(Numeric::ERR_INVALIDKEY, user.getNickname(), _name + " :Key is not well-formed"));
+						break ;
+					}
 					if (!_key.empty())
 					{
 						sendToOne(user, makeReply(Numeric::ERR_KEYSET, user.getNickname(), _name + " :Channel key already set"));
@@ -474,8 +506,6 @@ void	Channel::handleMode(Client &user, const std::string &modes, const std::vect
 				}
 				else
 				{
-					if (paramIndex < modeParams.size())
-						paramIndex++;
 					if (!_key.empty())
 					{
 						setModeKey(false, "");
@@ -493,7 +523,7 @@ void	Channel::handleMode(Client &user, const std::string &modes, const std::vect
 					int limit = 0;
 					if (!parseLimit(raw, limit))
 					{
-						sendToOne(user, makeReply(Numeric::ERR_NEEDMOREPARAMS, user.getNickname(), _name + " :Invalid limit value"));
+						sendToOne(user, makeReply(Numeric::ERR_INVALIDMODEPARAM, user.getNickname(), _name + " l " + raw + " :Invalid limit value"));
 						break ;
 					}
 					setModeUserLimit(true, limit);

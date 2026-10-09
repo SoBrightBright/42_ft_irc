@@ -41,6 +41,8 @@ void	Topic::execute(Server &server, Client &client, const Message &msg)
 	if (params.size() >= 2)
 	{
 		topic = params[1];
+		if (topic.size() > 300)
+			topic.resize(300);
 		hastopicparam = true;
 	}
 	
