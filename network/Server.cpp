@@ -28,7 +28,7 @@ void Server::init()
 
     int opt = 1; // 재시작 주소 에러 방지용
     if (setsockopt(_server_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0)
-        throw std::runtime_error("setsocket failed");
+        throw std::runtime_error("setsockopt failed");
 
     if (fcntl(_server_fd, F_SETFL, O_NONBLOCK) < 0) //논블로킹
         throw std::runtime_error("fcntl failed");
@@ -67,6 +67,8 @@ void Server::run()
                 std::cerr << "Poll failed" << std::endl;
                 break;
             }
+            if (ready == 0)
+                _poll_fds[0].events = POLLIN;
 
             size_t count = _poll_fds.size();
             for (size_t i = 0; i < count; ++i)
