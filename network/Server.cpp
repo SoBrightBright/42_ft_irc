@@ -28,7 +28,7 @@ void Server::init()
 
     int opt = 1; // 재시작 주소 에러 방지용
     if (setsockopt(_server_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0)
-        throw std::runtime_error("setsockept failed");
+        throw std::runtime_error("setsocket failed");
 
     if (fcntl(_server_fd, F_SETFL, O_NONBLOCK) < 0) //논블로킹
         throw std::runtime_error("fcntl failed");

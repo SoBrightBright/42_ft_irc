@@ -24,8 +24,7 @@ void Server::acceptNewClient()
     int client_fd = accept(_server_fd, (struct sockaddr*)&client_addr, &client_len);
     if (client_fd < 0)
     {
-        if (errno == EMFILE || errno == ENFILE)
-            _poll_fds[0].events = 0;
+        _poll_fds[0].events = 0;
         return;
     }
 
@@ -54,7 +53,7 @@ void Server::acceptNewClient()
     }
     catch (const std::exception &e)
     {
-        std::cerr << "accecpt: " << e.what() << std::endl;
+        std::cerr << "accept: " << e.what() << std::endl;
         if (!_poll_fds.empty() && _poll_fds.back().fd == client_fd)
             _poll_fds.pop_back();
         delete new_client;
