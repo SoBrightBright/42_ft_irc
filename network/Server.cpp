@@ -132,7 +132,7 @@ void Server::checkIdleClients()
 
         long    idle = client->getIdleTime();
         if (idle > TIMEOUT_SECONDS)
-            markForDisconnection(it->first, "Ping timeout");
+            disconnectAfterFlush(*client, "Ping timeout");
         else if (idle > TIMEOUT_SECONDS / 2 && !client->isPingSent()) {
             client->sendReply("PING :ircserv");
             client->setPingSent(true);

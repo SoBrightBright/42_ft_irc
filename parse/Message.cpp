@@ -33,21 +33,29 @@ bool	Message::hasPrefix() const { return existPrefix; }
 // 하지만? 필요하다면 bool -> enum화해서 별도 처리 가능.
 bool	Message::spliter(const std::string &raw) {
 	// RFC2812 2.3: CR-LF 포함 512byte. raw는 \r\n을 제외하고 들어오므로 510byte.
-	if (raw.empty() || raw.size() > 510)
+	if (raw.empty())
 		return false;
 
-	if (raw.find('\0') != std::string::npos)
+	std::string	searing = raw;
+	if (searing.size() > 510) {
+		size_t	cut = 510;
+		for (int back = 0; back < 3 && (static_cast<unsigned char>(searing[cut]) & 0xC0) == 0x80; ++back)
+			--cut;
+		searing.erase(cut);
+	}
+
+	if (searing.find('\0') != std::string::npos)
 		return false;
 
-	size_t rpos = raw.find('\r');
-	if (rpos != std::string::npos && rpos != raw.size() - 1)
+	size_t rpos = searing.find('\r');
+	if (rpos != std::string::npos && rpos != searing.size() - 1)
 		return false;
 
 	std::string	seared;
-	if (rpos == raw.size() - 1)
-		seared = raw.substr(0, rpos);
+	if (rpos == searing.size() - 1)
+		seared = searing.substr(0, rpos);
 	else
-		seared = raw;
+		seared = searing;
 
 	size_t	searedSize = seared.size();
 	size_t	pos = seared.find_first_not_of(' ');
