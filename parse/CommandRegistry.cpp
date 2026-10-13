@@ -26,9 +26,9 @@ void	CommandRegistry::registerCommand(const std::string &name, ICommand *command
 void	CommandRegistry::dispatch(Server &server, Client &client, const Message &message) const {
 	std::map<std::string, ICommand*>::const_iterator it = _commands.find(message.getCommand());
 
-	// cannot find command: error 421 
+	// cannot find command: ERROR 421 
 	if (it == _commands.end()) {
-		// RFC - target = "*" (before login) OR nickname (after login)
+		// RFC의 target = "*" (before login) OR nickname (after login)
 		std::string	target = "*";
 	
 
@@ -38,7 +38,7 @@ void	CommandRegistry::dispatch(Server &server, Client &client, const Message &me
 		return;
 	}
 
-	// no login with login command: error 451
+	// no login with login command: ERROR 451
 	if (it->second->needLogin() && !client.isRegistered()) {
 			client.sendReply(IrcReply::formatReply(IrcNumeric::ERR_NOTREGISTERED,"*", "You have not registered"));
 		return;

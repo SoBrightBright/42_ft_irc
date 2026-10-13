@@ -42,7 +42,6 @@ static std::string nickNotice(const std::string &old, const std::string &newer,
 	return (":" + old + "!" + user + "@" + host + " NICK :" + newer);
 }
 
-// execute 공통: parameter overcontain에 대해서 - 접근조차 없이 무시한다.
 // NICK <nickname> : 닉네임 설정/변경. 서버 내 중복 닉네임 체크 및 유효성 검사 후 적용
 void	Nick::execute(Server &server, Client &client, const Message &msg) {
 	const std::vector<std::string> &params = msg.getParameter();

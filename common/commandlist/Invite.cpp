@@ -45,5 +45,3 @@ void	Invite::execute(Server &server, Client &client, const Message &msg)
 
 	channel->handleInvite(client, *targetClient);
 }
-
-// TODO:: "there is no requirement that the channel the target user is being invited to must exist or be a valid channel" -> 어케 처리할지 고민해 보기

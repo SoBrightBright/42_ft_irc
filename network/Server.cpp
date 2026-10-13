@@ -111,7 +111,6 @@ void Server::run()
     }
 }
 
-// 10/02. 유휴 시간 동안, 살아있는지 체크를 한 번 하고 계속 갱신 + 미로그인시 짧은 시간 제한
 void Server::checkIdleClients()
 {
     for (std::map<int, Client*>::iterator it = _clients.begin(); it != _clients.end(); ++it)

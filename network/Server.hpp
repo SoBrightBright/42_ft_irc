@@ -41,10 +41,10 @@ class Server
 		std::vector<struct pollfd>		_poll_fds;
 
 		std::map<int, Client*>			_clients;
-		std::map<std::string, Channel*>	_channels; // string은 채널이름, Channel*은 채널의 포인터
+		std::map<std::string, Channel*>	_channels;			// string은 채널이름, Channel*은 채널의 포인터
 
-		std::map<int, std::string>		_to_disconnected; // client_fd -> reason
-		std::map<int, std::string>		_closing; // 전송 후 닫을 클라이언트
+		std::map<int, std::string>		_to_disconnected;	// client_fd -> reason
+		std::map<int, std::string>		_closing;			// 전송 후 닫을 클라이언트
 
 		void	acceptNewClient();
 		void	receiveData(int client_fd);
@@ -73,11 +73,11 @@ class Server
 		bool		checkPassword(const std::string& password) const;
 		void		disconnectClient(Client&, const std::string& reason);
 
-		Channel*	findChannel(const std::string &name); // name으로 Channel*을 찾아서 반환, 없으면 NULL 반환
-		Channel*	findOrCreateChannel(const std::string &name); // JOIN에서 사용, name으로 찾아보고 없으면 name이란 채널을 새로 만듦
+		Channel*	findChannel(const std::string &name);				// name으로 Channel*을 찾아서 반환, 없으면 NULL 반환
+		Channel*	findOrCreateChannel(const std::string &name);		// JOIN에서 사용, name으로 찾아보고 없으면 name이란 채널을 새로 만듦
 		void		clearInvitedUsers(Channel *channel);
-		void		deleteChannel(const std::string &name); // name으로 찾아서 삭제, 없으면 NULL 반환
-		Client*		findClientByNickname(const std::string &nickname); // 지금까지 몇 번 말씀드렸던 것!! nickname으로 Client * 찾아서 반환. 없으면 NULL 반환
+		void		deleteChannel(const std::string &name);				// name으로 찾아서 삭제, 없으면 NULL 반환
+		Client*		findClientByNickname(const std::string &nickname);	// 지금까지 몇 번 말씀드렸던 것!! nickname으로 Client * 찾아서 반환. 없으면 NULL 반환
 };
 
 #endif
