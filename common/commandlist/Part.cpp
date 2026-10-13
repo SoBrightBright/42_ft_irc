@@ -13,7 +13,6 @@ Part	&Part::operator=(const Part &obj) { (void)obj; return *this; }
 
 bool	Part::needLogin() const { return true; }
 
-// 10/02: 메세지 파라미터 변경으로 인한 코드 수정 & 함수 통일
 void	Part::execute(Server &server, Client &client, const Message &msg)
 {
 	const std::vector<std::string> &params = msg.getParameter();

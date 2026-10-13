@@ -15,7 +15,7 @@ Quit	&Quit::operator=(const Quit &obj) { (void)obj; return *this; }
 
 bool	Quit::needLogin() const { return false; }
 
-// QUIT [:reason] : 연결 종료. 종료 사유 추출 및 실제 연결 종료+broadcast
+// QUIT [:reason] : 연결 종료. 종료 사유 추출 및 실제 연결 종료 + broadcast
 void	Quit::execute(Server &server, Client &client, const Message &msg) {
 	const std::vector<std::string> &params = msg.getParameter();
 

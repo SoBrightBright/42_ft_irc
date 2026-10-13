@@ -23,7 +23,6 @@ void	CommandRegistry::registerCommand(const std::string &name, ICommand *command
 	_commands[name] = command;
 }
 
-// /**/ 로 감싸진 부분은 실제 구현 함수가 없어서 우선 두었어요.
 void	CommandRegistry::dispatch(Server &server, Client &client, const Message &message) const {
 	std::map<std::string, ICommand*>::const_iterator it = _commands.find(message.getCommand());
 

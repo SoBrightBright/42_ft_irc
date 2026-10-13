@@ -79,7 +79,7 @@ void Client::sendReply(const std::string& message)
 
 	// UTF-8에서 글자의 2번째 바이트부터는 모두 10xxxxxx 모양이다. (한글은 3바이트)
 	// 자를 자리(message[cut])가 그런 바이트라면 글자 한가운데이므로, 글자 시작까지 물러난다.
-	// UTF-8 한 글자는 최대 4바이트라서 최대 3바이트만 물러난다. (UTF-8이 아닌 입력 대비)
+	// UTF-8 한 글자는 최대 4바이트라서 최대 3바이트만 물러난다.
 	size_t	cut = 510;
 	for (int back = 0; back < 3 && (static_cast<unsigned char>(message[cut]) & 0xC0) == 0x80; ++back)
 		--cut;
@@ -116,7 +116,6 @@ long Client::getClosingTime() const
 	return (static_cast<long>(std::difftime(std::time(NULL), _closingSince)));
 }
 
-// 10/02: 환영 메시지는 001~004 전부 필수라고 제안받음.
 void Client::tryCompleteRegistration()
 {
 	if (!isRegistered() && hasPasswordVerified() && !getNickname().empty() && !getUsername().empty())
@@ -128,6 +127,7 @@ void Client::tryCompleteRegistration()
 			"Your host is ircserv, running version 1.0"));
 		sendReply(IrcReply::formatReply(IrcNumeric::RPL_CREATED, getNickname(),
 			"This server was created for ircserv"));
+
 		// RFC2812 5.1: 004는 trailing 없이 공백 구분 4개 필드, 사용자모드 미지원.
 		// "o"는 자리값, 채널 모드는 itkol 지원
 		sendReply(":ircserv " + IrcNumeric::RPL_MYINFO + " " + getNickname() +

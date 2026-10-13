@@ -12,27 +12,26 @@ class Channel;
 class Client
 {
     private:
-        int         _fd;            // 클라이언트의 소켓 파일 디스크립터
-        std::string _ip;                 // 클라이언트의 IP 주소
-        std::string _nickname;           // NICK 명령어로 설정할 닉네임
-        std::string _username;           // USER 명령어로 설정할 유저네임
-        std::string _realname;           // USER 명령어로 설정할 실명
+        int         _fd;                                    // 클라이언트의 소켓 파일 디스크립터
+        std::string _ip;                                    // 클라이언트의 IP 주소
+        std::string _nickname;                              // NICK 명령어로 설정할 닉네임
+        std::string _username;                              // USER 명령어로 설정할 유저네임
+        std::string _realname;                              // USER 명령어로 설정할 실명
 
-        bool        _is_registered;      // NICK과 USER 설정까지 모두 마쳤는지 여부
-        bool        _is_password_verified; // 비밀번호 검증 여부
+        bool        _is_registered;                         // NICK과 USER 설정까지 모두 마쳤는지 여부
+        bool        _is_password_verified;                  // 비밀번호 검증 여부
 
-        std::map<std::string, Channel*> _joinedChannels; // 클라이언트가 참여한 채널 목록
-        std::vector<Channel*> _invitedChannels; // 클라이언트가 초대된 채널 목록
+        std::map<std::string, Channel*> _joinedChannels;    // 클라이언트가 참여한 채널 목록
+        std::vector<Channel*> _invitedChannels;             // 클라이언트가 초대된 채널 목록
 
-        std::string _read_buffer;        // 수신된 조각난 데이터를 모아두는 버퍼 (solee -> jimkim)
-        std::string _write_buffer;       // 전송을 대기 중인 데이터를 모아두는 버퍼 (soolee -> solee)
+        std::string _read_buffer;                           // 수신된 조각난 데이터를 모아두는 버퍼
+        std::string _write_buffer;                          // 전송을 대기 중인 데이터를 모아두는 버퍼
 
         std::time_t _connectedAt;
-        std::time_t _lastActivity;      // 마지막 활동 시간 (초 단위)
+        std::time_t _lastActivity;                          // 마지막 활동 시간 (초 단위)
         bool        _pingSent;
         std::time_t _closingSince;
-        
-        // 들어가있는 채널 목록
+
     public:
         Client(int fd);
         ~Client();
@@ -72,7 +71,6 @@ class Client
         long        getIdleTime() const;
         long        getConnectTime() const;
 
-        // 10/02: 서로 연결이 되어있음을 관리하기 위해 ping 관련 처리 추가
         bool        isPingSent() const;
         void        setPingSent(bool status);
         void        markClosing();

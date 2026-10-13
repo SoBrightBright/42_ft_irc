@@ -31,8 +31,8 @@ int main(int argc, char **argv)
 
     try {
         Server irc_server(static_cast<int>(port), password); // 서버 객체 생성
-        irc_server.init(); // 소켓 셋업, 논블로킹
-        irc_server.run();  // poll() 무한 루프
+        irc_server.init();                                   // 소켓 셋업, 논블로킹
+        irc_server.run();                                    // poll() 무한 루프
         std::cout << "IRC Server stopped." << std::endl;
     } catch (const std::exception& e) {
         std::cerr << "Fatal Error: " << e.what() << std::endl;

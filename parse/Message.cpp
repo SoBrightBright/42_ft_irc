@@ -17,6 +17,7 @@ void	Message::setCommand(const std::string &command) {
 	for (size_t idx = 0; idx < _command.size(); ++ idx)
 		_command[idx] = std::toupper(static_cast<unsigned char>(_command[idx]));
 }
+
 void	Message::addParameter(const std::string &parameter) {
 	_parameter.push_back(parameter);
 }
@@ -30,12 +31,12 @@ bool	Message::hasPrefix() const { return existPrefix; }
 // RFC에서는 파싱 실패 시의 대응을 규정하지 않고,
 // 실무적 관점에서 사소한 오류는 관대하게 무시하는 편.
 // 안정성 요구사항과 실전 리스크 대응 측면에서 파싱오류는 true/false 처리로만 마무리
-// 하지만? 필요하다면 bool -> enum화해서 별도 처리 가능.
 bool	Message::spliter(const std::string &raw) {
 	// RFC2812 2.3: CR-LF 포함 512byte. raw는 \r\n을 제외하고 들어오므로 510byte.
 	if (raw.empty())
 		return false;
 
+	// handle UTF-8 characters (e.g. 한글)
 	std::string	searing = raw;
 	if (searing.size() > 510) {
 		size_t	cut = 510;
@@ -93,8 +94,6 @@ bool	Message::spliter(const std::string &raw) {
 	if (pos >= searedSize)
 		return true;
 
-	// 10/02: 마지막 파라미터가 :이 붙거나 붙지 않는 등의 입력을 다 허용하므로... 갈아엎었다.
-	// get parameter & trailing
 	// RFC2812 2.3.1: middle과 trailing은 의미상 동등.
 	// RFC2812 2.3.1: middle이 이미 14개라면 15번째부터는 ':'가 없어도 trailing.
 	size_t	paramCount = 0;

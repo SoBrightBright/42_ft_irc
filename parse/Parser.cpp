@@ -34,7 +34,6 @@ Parser::Parser() {
 	_commands.registerCommand("PART", new Part());
 	_commands.registerCommand("PRIVMSG", new Privmsg());
 	_commands.registerCommand("TOPIC", new Topic());
-
 }
 
 Parser::~Parser() {}

@@ -13,7 +13,6 @@ Ping	&Ping::operator=(const Ping &obj) { (void)obj; return *this; }
 
 bool	Ping::needLogin() const { return false; }
 
-// 10/02: 메세지 파라미터 변경으로 인한 코드 수정 & 함수 통일
 // PING <token>: client->server 연결상태 확인. 응답 전송(Pong <token> 되돌려주기)
 void	Ping::execute(Server &server, Client &client, const Message &msg) {
 	(void)server;

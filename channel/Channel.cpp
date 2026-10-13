@@ -358,7 +358,7 @@ void	Channel::handleInvite(Client &invitingUser, Client &invitedUser)
 	sendToOne(invitedUser, makeCommand(invitingUser, "INVITE", invitedUser.getNickname() + " " + _name));
 }
 
-// [10/03] Quit이 실행되었을 때는 PART 메시지 없이 종료되어야한다.
+// Quit이 실행되었을 때는 PART 메시지 없이 종료되어야한다.
 void	Channel::removeQuitUser(Client &user)
 {
 	if (isMember(user))

@@ -13,7 +13,7 @@
 
 			void	setPrefix(const std::string &prefix);
 			void	setCommand(const std::string &command);
-			void	addParameter(const std::string &parameter);	// parameter는 이어붙여야하니까.
+			void	addParameter(const std::string &parameter);
 
 			Message(const Message &obj);
 			Message	&operator=(const Message &obj);
